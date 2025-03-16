@@ -82,7 +82,7 @@ const makeWeekRequest = async (giftName) => {
   	await browser.close();  
 }
 
-
+const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 
 export const runBot = async () => {
