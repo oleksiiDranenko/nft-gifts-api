@@ -11,10 +11,17 @@ let {date: currentDate} = getDate();
 
 
 const makeWeekRequest = async (giftName) => {
-  	const browser = await puppeteer.launch({ 
-		headless: true,
-		args: ['--disable-web-security', '--disable-features=IsolateOrigins,site-per-process']
-	});  
+	const browser = await puppeteer.launch({
+		headless: true,  // Use headless mode
+		args: [
+			'--no-sandbox',  // Disables sandboxing (necessary in cloud environments)
+			'--disable-setuid-sandbox',  // Disable setuid sandboxing
+			'--disable-web-security',  // Disable web security features
+			'--disable-features=IsolateOrigins,site-per-process', // Disable specific features causing issues
+			'--single-process', // Run Puppeteer in a single process
+			'--disable-gpu', // Disable GPU acceleration (often unnecessary for headless browsers)
+		],
+	});
   	const page = await browser.newPage();
 	
 	const userAgent = randomUseragent.getRandom(); 
