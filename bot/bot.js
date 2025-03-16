@@ -13,13 +13,7 @@ let {date: currentDate} = getDate();
 const makeWeekRequest = async (giftName) => {
 	const browser = await puppeteer.launch({
 		headless: true,
-		executablePath: '/opt/render/project/.render/chrome/opt/google/chrome/chrome',
-		args: [
-			'--no-sandbox',
-			'--disable-setuid-sandbox',
-			'--disable-web-security',
-			'--disable-features=IsolateOrigins,site-per-process'
-		]
+		args: ['--no-sandbox', '--disable-setuid-sandbox']
 	});
 	
   	const page = await browser.newPage();
