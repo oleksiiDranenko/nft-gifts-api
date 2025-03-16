@@ -1,0 +1,21 @@
+import mongoose from "mongoose";
+
+const GiftSchema = new mongoose.Schema(
+    {
+        name: { type: String, required: true },
+        image: { type: String, required: true},
+        supply: { type: Number, required: true },
+        initSupply: { type: Number, required: true },
+        releaseDate: { type: String, required: true },
+        starsPrice: { type: String, required: true },
+        upgradePrice: {type: String, required: true},
+        initTonPrice: { type: Number, required: true },
+        initUsdPrice: { type: Number, required: true },
+    },
+    { 
+        collection: 'gifts',
+        versionKey: false
+     } 
+);
+
+export const GiftModel = mongoose.model('gifts', GiftSchema)
