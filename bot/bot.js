@@ -11,10 +11,12 @@ let {date: currentDate} = getDate();
 
 
 const makeWeekRequest = async (giftName) => {
-  	const browser = await puppeteer.launch({ 
-		headless: true,
-		args: ['--disable-web-security', '--disable-features=IsolateOrigins,site-per-process']
-	});  
+	const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: '/opt/render/project/src/.cache/puppeteer', 
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--disable-features=IsolateOrigins,site-per-process']
+});
+
   	const page = await browser.newPage();
 	
 	const userAgent = randomUseragent.getRandom(); 
