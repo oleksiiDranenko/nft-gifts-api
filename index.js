@@ -23,7 +23,6 @@ const dbConnectionString = process.env.DB_CONNECTION_STRING;
 
 app.get("/fetch", async (req, res) => {
     try {
-        res.json('Fetching gift prices...')
         await runBot();
         res.status(200).json("Data fetched successfully!");
     } catch (error) {
