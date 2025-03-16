@@ -28,7 +28,7 @@ app.get("/fetch", async (req, res) => {
     } catch (error) {
         console.error("Error running fetch:", error);
         res.status(500).json("Error running fetch.");
-    }
+    } 
 });
 
 
