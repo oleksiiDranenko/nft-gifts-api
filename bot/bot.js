@@ -92,6 +92,8 @@ export const runBot = async () => {
 
     ton = await getTonPrice();
 
+	await delay(3000)
+
 	const gifts = await getNames()
 
     for (let gift of gifts) {
