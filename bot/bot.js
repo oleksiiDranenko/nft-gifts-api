@@ -87,10 +87,10 @@ const makeWeekRequest = async (giftName) => {
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 
-export const runBot = async () => {
+
+const run = async () => {
     console.log(`Request at: ${new Date().toLocaleTimeString()}`);
 
-	await delay(3000)
     ton = await getTonPrice();
 
 	const gifts = await getNames()
@@ -100,11 +100,23 @@ export const runBot = async () => {
 		await delay(3000)
     }
 
-    newDayCheck();
+    scheduleNextRun();
 };
 
 
-const newDayCheck = async () => {
+export const scheduleNextRun = async (intervalMinutes = 1) => {
+    const now = new Date();
+    const nextRun = new Date(now);
+
+    nextRun.setMinutes(Math.ceil(now.getMinutes() / intervalMinutes) * intervalMinutes, 0, 0);
+
+    if (nextRun <= now) {
+        nextRun.setMinutes(nextRun.getMinutes() + intervalMinutes);
+    }
+
+    const delay = nextRun - now;
+    console.log(`Next request scheduled at: ${nextRun.toLocaleTimeString()} (${delay / 1000} sec delay)`);
+
     const { date: updatedDate } = getDate();
 
     if (currentDate !== updatedDate) {
@@ -119,6 +131,8 @@ const newDayCheck = async () => {
         console.log('Added previous day data');
         currentDate = updatedDate;
     }
+
+    setTimeout(run, delay);
 };
 
 

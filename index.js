@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { WeekRouter } from './routes/weekData.js'; 
 import { LifeRouter } from './routes/lifeData.js';
 import { giftsRouter } from './routes/gifts.js';
-import { runBot } from './bot/bot.js';
+import { scheduleNextRun } from './bot/bot.js';
 
 
 const app = express();
@@ -23,7 +23,7 @@ const dbConnectionString = process.env.DB_CONNECTION_STRING;
 
 app.get("/fetch", async (req, res) => {
     try {
-        await runBot();
+        await scheduleNextRun();
         res.status(200).json("Data fetched successfully!");
     } catch (error) {
         console.error("Error running fetch:", error);
