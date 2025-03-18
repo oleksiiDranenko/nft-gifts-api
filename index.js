@@ -21,7 +21,7 @@ dotenv.config();
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
 
 
-scheduleNextRun();
+// scheduleNextRun();
 
 
 mongoose.connect(dbConnectionString, {
