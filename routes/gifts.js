@@ -27,8 +27,8 @@ router.get('/', async (req, res) => {
                 ...gift.toObject(),
                 tonPrice24hAgo: last24hData.length ? last24hData[0].priceTon : null,
                 usdPrice24hAgo: last24hData.length ? last24hData[0].priceUsd : null,
-                priceTon: currentPrice[0].priceTon,
-                priceUsd: currentPrice[0].priceUsd
+                priceTon: currentPrice.length ?  currentPrice[0].priceTon : null,
+                priceUsd: currentPrice.length ?  currentPrice[0].priceUsd : null
             });
         }
 
