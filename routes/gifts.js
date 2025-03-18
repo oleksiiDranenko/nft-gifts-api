@@ -89,7 +89,6 @@ router.get('/', async (req, res) => {
 
             const {priceTon, priceUsd} = await updatePrice(ton)
 
-            console.log(gift)
             
             finalGiftsList.push({
                 ...gift.toObject(),
@@ -102,7 +101,7 @@ router.get('/', async (req, res) => {
 
         res.json(finalGiftsList);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.message, gift: gift });
     }
 });
 
