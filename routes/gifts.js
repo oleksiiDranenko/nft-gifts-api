@@ -54,7 +54,7 @@ router.get('/:giftId', async (req, res) => {
             .lean();
 
         const finalGift = {
-            ...gift,
+            ...gift.toObject,
             tonPrice24hAgo: last24hData.length ? last24hData[0].priceTon : null,
             usdPrice24hAgo: last24hData.length ? last24hData[0].priceUsd : null,
             priceTon: currentPrice.length ?  currentPrice[0].priceTon : null,
