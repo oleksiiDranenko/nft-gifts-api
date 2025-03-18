@@ -2,6 +2,7 @@ import express from 'express';
 import { GiftModel } from '../models/Gift.js';
 import { WeekChartModel } from '../models/WeekChart.js';
 import puppeteer from "puppeteer";
+import randomUseragent  from "random-useragent";
 
 const router = express.Router();
 

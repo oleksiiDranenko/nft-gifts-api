@@ -15,7 +15,7 @@ const makeWeekRequest = async (giftName) => {
 		executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
     	headless: true,
     	args: ['--no-sandbox', '--disable-setuid-sandbox']
-});
+	});
 
   	const page = await browser.newPage();
 	
