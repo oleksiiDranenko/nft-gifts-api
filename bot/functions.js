@@ -28,6 +28,7 @@ export const getDate = (timezone = 'Europe/London') => {
 
 
 export const getTonPrice = async () => {
+    console.log('ton price request')
 	const res = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd')
 	const tonPrice = res.data['the-open-network'].usd
 

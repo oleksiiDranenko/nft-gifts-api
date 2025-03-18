@@ -90,9 +90,8 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
 export const runBot = async () => {
     console.log(`Request at: ${new Date().toLocaleTimeString()}`);
 
-    ton = await getTonPrice();
-
 	await delay(3000)
+    ton = await getTonPrice();
 
 	const gifts = await getNames()
 
