@@ -88,7 +88,7 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 
 
-const run = async () => {
+export const run = async () => {
     console.log(`Request at: ${new Date().toLocaleTimeString()}`);
 
     ton = await getTonPrice();
