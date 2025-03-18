@@ -89,8 +89,7 @@ router.get('/', async (req, res) => {
 
             const {priceTon, priceUsd} = await updatePrice(ton)
 
-            
-
+            console.log(gift)
             
             finalGiftsList.push({
                 ...gift.toObject(),
