@@ -6,23 +6,14 @@ import randomUseragent from "random-useragent";
 
 const router = express.Router();
 
-let browserInstance;
-
-const getBrowser = async () => {
-    if (!browserInstance) {
-        browserInstance = await puppeteer.launch({
-            executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
-    }
-    return browserInstance;
-};
-
 const updatePrice = async (ton) => {
+    const browser = await puppeteer.launch({
+		executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
+    	headless: true,
+    	args: ['--no-sandbox', '--disable-setuid-sandbox']
+	});
 
-    const browser = await getBrowser();
-    const page = await browser.newPage();
+  	const page = await browser.newPage();
 	
 	const userAgent = randomUseragent.getRandom(); 
 	await page.setUserAgent(userAgent);
