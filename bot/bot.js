@@ -104,7 +104,7 @@ const run = async () => {
 };
 
 
-export const scheduleNextRun = async (intervalMinutes = 1) => {
+export const scheduleNextRun = async (intervalMinutes = 60) => {
     const now = new Date();
     const nextRun = new Date(now);
 
