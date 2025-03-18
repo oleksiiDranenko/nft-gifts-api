@@ -21,15 +21,7 @@ dotenv.config();
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
 
 
-app.get("/fetch", async (req, res) => {
-    try {
-        await scheduleNextRun();
-        res.status(200).json("Data fetched successfully!");
-    } catch (error) {
-        console.error("Error running fetch:", error);
-        res.status(500).json("Error running fetch.");
-    } 
-});
+scheduleNextRun();
 
 
 mongoose.connect(dbConnectionString, {
