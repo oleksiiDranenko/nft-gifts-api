@@ -2,18 +2,27 @@ import express from 'express';
 import { GiftModel } from '../models/Gift.js';
 import { WeekChartModel } from '../models/WeekChart.js';
 import puppeteer from "puppeteer";
-import randomUseragent  from "random-useragent";
+import randomUseragent from "random-useragent";
 
 const router = express.Router();
 
-const updatePrice = async (ton) => {
-    const browser = await puppeteer.launch({
-		executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
-    	headless: true,
-    	args: ['--no-sandbox', '--disable-setuid-sandbox']
-	});
+let browserInstance;
 
-  	const page = await browser.newPage();
+const getBrowser = async () => {
+    if (!browserInstance) {
+        browserInstance = await puppeteer.launch({
+            executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+    }
+    return browserInstance;
+};
+
+const updatePrice = async (ton) => {
+
+    const browser = await getBrowser();
+    const page = await browser.newPage();
 	
 	const userAgent = randomUseragent.getRandom(); 
 	await page.setUserAgent(userAgent);
