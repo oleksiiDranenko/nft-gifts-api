@@ -101,7 +101,7 @@ router.get('/', async (req, res) => {
 
         res.json(finalGiftsList);
     } catch (error) {
-        res.status(500).json({ message: error.message, gift: gift });
+        res.status(500).json({ message: error.message, a: 'catch'});
     }
 });
 
