@@ -6,7 +6,7 @@ import randomUseragent  from "random-useragent";
 
 const router = express.Router();
 
-const updatePrice = async (ton) => {
+const updatePrice = async (ton, giftName) => {
     const browser = await puppeteer.launch({
 		executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
     	headless: true,
@@ -87,7 +87,7 @@ router.get('/', async (req, res) => {
 
             const ton = currentPrice[0].priceUsd / currentPrice[0].priceTon;
 
-            const {priceTon, priceUsd} = await updatePrice(ton)
+            const {priceTon, priceUsd} = await updatePrice(ton, gift.name)
 
             
             finalGiftsList.push({
