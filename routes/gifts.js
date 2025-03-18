@@ -43,22 +43,22 @@ router.get('/:giftId', async (req, res) => {
 
         const gift = await GiftModel.findById(giftId)
 
-        const last24hData = await WeekChartModel.findById(gift._id)
+        const last24hData = await WeekChartModel.find({ name: gift.name })
             .sort({ createdAt: -1 })
             .skip(23)
             .limit(1)
             .lean();
-        const currentPrice = await WeekChartModel.findById(gift._id)
+        const currentPrice = await WeekChartModel.find({ name: gift.name })
             .sort({ createdAt: -1 })
             .limit(1)
             .lean();
-
+        
         const finalGift = {
-            ...gift.toObject,
+            ...gift.toObject(),
             tonPrice24hAgo: last24hData.length ? last24hData[0].priceTon : null,
-            usdPrice24hAgo: last24hData.length ? last24hData[0].priceUsd : null,
-            priceTon: currentPrice.length ?  currentPrice[0].priceTon : null,
-            priceUsd: currentPrice.length ?  currentPrice[0].priceUsd : null
+                usdPrice24hAgo: last24hData.length ? last24hData[0].priceUsd : null,
+                priceTon: currentPrice.length ?  currentPrice[0].priceTon : null,
+                priceUsd: currentPrice.length ?  currentPrice[0].priceUsd : null
         }
 
         res.json(finalGift)
