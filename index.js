@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { WeekRouter } from './routes/weekData.js'; 
 import { LifeRouter } from './routes/lifeData.js';
 import { giftsRouter } from './routes/gifts.js';
-import { makeWeekRequest } from './bot/bot.js';
+import { scheduleNextRun } from './bot/bot.js';
 
 
 const app = express();
@@ -21,9 +21,7 @@ dotenv.config();
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
 
 
-// scheduleNextRun();
-
-makeWeekRequest()
+scheduleNextRun();
 
 
 mongoose.connect(dbConnectionString, {

@@ -10,7 +10,7 @@ let {date: currentDate} = getDate();
 
 
 
-export const makeWeekRequest = async (giftName) => {
+const makeWeekRequest = async (giftName) => {
 	const browser = await puppeteer.launch({
 		executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
     	headless: true,
@@ -77,7 +77,7 @@ export const makeWeekRequest = async (giftName) => {
   	};
 
 
-	// await addWeekData(newObject)
+	await addWeekData(newObject)
 
 	console.log(newObject)
 
