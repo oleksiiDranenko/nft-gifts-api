@@ -5,11 +5,11 @@ import { WeekChartModel } from '../models/WeekChart.js';
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-    const { id } = req.query;
+    const { name } = req.query;
 
     try {
 
-        const lifeList = await LifeChartModel.findById(id)
+        const lifeList = await LifeChartModel.find({name})
 
         res.status(200).json(lifeList)
         
