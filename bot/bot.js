@@ -12,7 +12,7 @@ const intervalMinutes = 60;
 
 const makeWeekRequest = async (giftName) => {
 	const browser = await puppeteer.launch({
-		executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
+		// executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
     	headless: true,
     	args: ['--no-sandbox', '--disable-setuid-sandbox']
 	});
@@ -97,7 +97,7 @@ export const run = async () => {
 
     for (let gift of gifts) {
         await makeWeekRequest(gift);
-		await delay(3000)
+		await delay(5000)
     }
 
 
@@ -108,8 +108,6 @@ export const run = async () => {
 export const scheduleNextRun = async () => {
     const now = new Date();
     const nextRun = new Date(now);
-
-	const giftsList = await getNames()
 
     nextRun.setMinutes(Math.ceil(now.getMinutes() / intervalMinutes) * intervalMinutes, 0, 0);
 
@@ -128,6 +126,8 @@ export const scheduleNextRun = async () => {
         const previousDate = new Date();
         previousDate.setDate(previousDate.getDate() - 1);
         const formattedPreviousDate = previousDate.toLocaleDateString('en-GB').split('/').join('-'); 
+
+		const giftsList = await getNames()
 
         await addLifeData(giftsList, formattedPreviousDate);
 
