@@ -7,7 +7,7 @@ import { getNames } from "../routes/gifts.js";
 
 let ton;
 let {date: currentDate} = getDate();
-
+const intervalMinutes = 60;
 
 
 const makeWeekRequest = async (giftName) => {
@@ -100,13 +100,16 @@ export const run = async () => {
 		await delay(3000)
     }
 
+
     scheduleNextRun();
 };
 
 
-export const scheduleNextRun = async (intervalMinutes = 60) => {
+export const scheduleNextRun = async () => {
     const now = new Date();
     const nextRun = new Date(now);
+
+	const giftsList = await getNames()
 
     nextRun.setMinutes(Math.ceil(now.getMinutes() / intervalMinutes) * intervalMinutes, 0, 0);
 
@@ -126,7 +129,7 @@ export const scheduleNextRun = async (intervalMinutes = 60) => {
         previousDate.setDate(previousDate.getDate() - 1);
         const formattedPreviousDate = previousDate.toLocaleDateString('en-GB').split('/').join('-'); 
 
-        await addLifeData(gifts, formattedPreviousDate);
+        await addLifeData(giftsList, formattedPreviousDate);
 
         console.log('Added previous day data');
         currentDate = updatedDate;

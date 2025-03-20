@@ -35,8 +35,8 @@ export const addLifeData = async (giftsList, date) => {
                 sumUsd += item.priceUsd;
             });
 
-            const avgPriceTon = list.length > 0 ? parseFloat((sumTon / list.length).toFixed(4)) : 0;
-            const avgPriceUsd = list.length > 0 ? parseFloat((sumUsd / list.length).toFixed(4)) : 0;
+            const avgPriceTon = list.length > 0 ? parseFloat((sumTon / list.length).toFixed(3)) : 0;
+            const avgPriceUsd = list.length > 0 ? parseFloat((sumUsd / list.length).toFixed(3)) : 0;
             
             const newObject = new LifeChartModel({
                 name: gift,

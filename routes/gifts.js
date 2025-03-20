@@ -65,7 +65,6 @@ router.get('/:giftId', async (req, res) => {
 
 export const getNames = async () => {
     try {
-
         const gifts = await GiftModel.find().select('name -_id');
         const giftNames = gifts.map(gift => gift.name);
         console.log(giftNames)
