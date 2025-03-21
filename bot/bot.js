@@ -12,7 +12,7 @@ const intervalMinutes = 60;
 
 const makeWeekRequest = async (giftName) => {
 	const browser = await puppeteer.launch({
-		// executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
+		executablePath: '/opt/render/project/src/.cache/puppeteer/chrome/linux-134.0.6998.35/chrome-linux64/chrome',
     	headless: true,
     	args: ['--no-sandbox', '--disable-setuid-sandbox']
 	});
