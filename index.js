@@ -4,7 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { WeekRouter } from './routes/weekData.js'; 
 import { LifeRouter } from './routes/lifeData.js';
-import { giftsRouter } from './routes/gifts.js';
+import { GiftsRouter } from './routes/gifts.js';
+import { UserRouter } from './routes/users.js'
 import { scheduleNextRun } from './bot/bot.js';
 
 
@@ -15,7 +16,8 @@ app.use(express.json());
 
 app.use('/weekChart', WeekRouter); 
 app.use('/lifeChart', LifeRouter);
-app.use('/gifts', giftsRouter)
+app.use('/gifts', GiftsRouter);
+app.use('/users', UserRouter)
 
 dotenv.config();
 const dbConnectionString = process.env.DB_CONNECTION_STRING;

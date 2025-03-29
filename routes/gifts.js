@@ -109,4 +109,4 @@ router.post('/', async (req, res) => {
     }
 })
 
-export { router as giftsRouter };  
+export { router as GiftsRouter };  
