@@ -8,7 +8,9 @@ const AssetSchema = new mongoose.Schema({
 const UserSchema = new mongoose.Schema({
     walletId: { type: String, required: true },
     savedList: { type: [String], required: true },
-    assets: { type: [AssetSchema], required: true }
+    assets: { type: [AssetSchema], required: true },
+    ton: { type: Number, required: true },
+    usd: { type: Number, required: true }
 })
 
 export const UserModel = mongoose.model('users', UserSchema)

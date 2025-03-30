@@ -41,7 +41,9 @@ router.post('/create-account', async (req, res) => {
         const newUser = new UserModel({
             walletId,
             savedList: [],
-            assets: []
+            assets: [],
+            ton: 0,
+            usd: 0
         });
 
         await newUser.save();
@@ -55,12 +57,12 @@ router.post('/create-account', async (req, res) => {
 
 router.patch('/update-account/:walletId', async (req, res) => {
     const { walletId } = req.params;
-    const { savedList, assets } = req.body;
+    const { savedList, assets, ton, usd } = req.body;
 
     try {
         const updatedUser = await UserModel.findOneAndUpdate(
             { walletId },
-            { $set: { savedList, assets } },
+            { $set: { savedList, assets, ton, usd } },
             { new: true, runValidators: true }
         );
 
