@@ -12,9 +12,7 @@ router.get('/check-account/:walletId', async (req, res) => {
         const user = await UserModel.findOne({ walletId: walletId })
         
         if (user) {
-            res.json({
-                exists: true
-            })
+            res.json(user)
         } else {
             res.json({
                 exists: false
