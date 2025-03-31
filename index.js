@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import cron from 'node-cron'; // Add this import
 import { WeekRouter } from './routes/weekData.js';
 import { LifeRouter } from './routes/lifeData.js';
 import { GiftsRouter } from './routes/gifts.js';
@@ -26,14 +27,27 @@ const port = process.env.PORT || 3001;
 
 process.env.TZ = 'Europe/Berlin';
 
+// Keep the endpoint for manual testing
 app.get('/update-data', async (req, res) => {
-    console.log('Data update requested');
+    console.log('Data update requested at:', new Date().toISOString());
     try {
         await addData();
+        console.log('Data update succeeded');
         res.status(200).json({ message: 'Data update completed' });
     } catch (error) {
-        console.error('Error in /update-data:', error.message);
-        res.status(500).json({ message: 'Data update failed', error: error.message });
+        console.error('Error in /update-data:', error.stack);
+        res.status(500).json({ message: 'Data update failed', error: error.message, stack: error.stack });
+    }
+});
+
+// Add internal cron job to run hourly
+cron.schedule('0 * * * *', async () => {
+    console.log('Cron job triggered at:', new Date().toISOString());
+    try {
+        await addData();
+        console.log('Cron job completed successfully');
+    } catch (error) {
+        console.error('Error in cron job:', error.stack);
     }
 });
 
