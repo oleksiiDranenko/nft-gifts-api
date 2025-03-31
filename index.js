@@ -8,6 +8,8 @@ import { GiftsRouter } from './routes/gifts.js';
 import { UserRouter } from './routes/users.js';
 import { scheduleNextRun } from './bot/bot.js';
 
+process.removeAllListeners('warning');
+
 const app = express();
 
 app.use(cors());
@@ -21,6 +23,8 @@ app.use('/users', UserRouter);
 dotenv.config();
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
 const port = process.env.PORT || 3001;
+
+process.env.TZ = 'Europe/Berlin';
 
 const startServer = async () => {
     try {

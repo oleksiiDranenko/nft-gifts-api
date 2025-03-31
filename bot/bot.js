@@ -70,7 +70,7 @@ const makeWeekRequest = async (giftName, attempt = 1) => {
         }
 
         const firstObject = response[0];
-        const { date, time } = getDate('Europe/London');
+        const { date, time } = getDate('Europe/Berlin');
         const priceTon = parseFloat((firstObject.price * 1.1).toFixed(4));
         const priceUsd = parseFloat((priceTon * ton).toFixed(4));
 
@@ -134,22 +134,23 @@ export const scheduleNextRun = async () => {
     try {
         const now = new Date();
         const nextRun = new Date(now);
-        nextRun.setHours(now.getHours() + 1, 0, 0, 0); // Next exact hour
+        nextRun.setHours(now.getHours() + 1, 0, 0, 0);
 
-        const delayMs = nextRun - now;
+        let delayMs = nextRun - now;
         if (delayMs <= 0) {
-            nextRun.setHours(nextRun.getHours() + 1); // If already past, add another hour
+            nextRun.setHours(nextRun.getHours() + 1);
+            delayMs = nextRun - now;
         }
 
-        console.log(`Next request scheduled at: ${nextRun.toLocaleTimeString()} (${delayMs / 1000} sec delay)`);
+        console.log(`Next request scheduled at: ${nextRun.toLocaleTimeString('en-US', { timeZone: 'Europe/Berlin' })} (${delayMs / 1000} sec delay)`);
 
-        const { date: updatedDate } = getDate();
+        const { date: updatedDate } = getDate('Europe/Berlin');
 
         if (currentDate !== updatedDate) {
             console.log('New day detected!');
             const previousDate = new Date();
             previousDate.setDate(previousDate.getDate() - 1);
-            const formattedPreviousDate = previousDate.toLocaleDateString('en-GB').split('/').join('-');
+            const formattedPreviousDate = previousDate.toLocaleDateString('en-GB', { timeZone: 'Europe/Berlin' }).split('/').join('-');
 
             const giftsList = await getNames();
             if (!giftsList || giftsList.length === 0) throw new Error("No gifts for life data");
