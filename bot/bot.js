@@ -1,20 +1,19 @@
 import puppeteer from "puppeteer";
-import { getDate, getTonPrice } from "./functions.js";
+import { getDate, getTonPrice } from "../functions.js";
 import randomUseragent from "random-useragent";
 import { addWeekData } from "../routes/weekData.js";
 import { addLifeData } from "../routes/lifeData.js";
 import { getNames } from "../routes/gifts.js";
 
-let ton; // Cached TON price
+let ton;
 let { date: currentDate } = getDate();
-let lastTonFetchTime = null; // Track last fetch time
+let lastTonFetchTime = null;
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
-// Wrapper for getTonPrice with retry logic
 const fetchTonPriceWithRetry = async (retries = 3, backoff = 5000) => {
     try {
-        const price = await getTonPrice(); // Your Axios function
+        const price = await getTonPrice();
         console.log(`Fetched TON price: ${price}`);
         lastTonFetchTime = Date.now();
         return price;
@@ -22,10 +21,10 @@ const fetchTonPriceWithRetry = async (retries = 3, backoff = 5000) => {
         if (error.response && error.response.status === 429 && retries > 0) {
             console.log(`Rate limit hit on TON price fetch. Retrying in ${backoff / 1000} seconds... (${retries} retries left)`);
             await delay(backoff);
-            return fetchTonPriceWithRetry(retries - 1, backoff * 2); // Exponential backoff
+            return fetchTonPriceWithRetry(retries - 1, backoff * 2);
         }
         console.error(`Failed to fetch TON price after retries: ${error.stack}`);
-        return null; // Fallback to null if all retries fail
+        return null;
     }
 };
 
@@ -35,13 +34,22 @@ const makeWeekRequest = async (giftName, retries = 3, backoff = 10000) => {
         console.log(`Launching browser for gift: ${giftName}`);
         browser = await puppeteer.launch({
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--single-process'
+            ],
         });
+        console.log(`Browser launched for ${giftName}`);
 
         const page = await browser.newPage();
-        
-        const userAgent = randomUseragent.getRandom(); 
+        console.log(`New page created for ${giftName}`);
+
+        const userAgent = randomUseragent.getRandom();
         await page.setUserAgent(userAgent);
+        console.log(`Set User-Agent for ${giftName}: ${userAgent}`);
 
         await page.setRequestInterception(true);
         page.on('request', (request) => {
@@ -58,7 +66,8 @@ const makeWeekRequest = async (giftName, retries = 3, backoff = 10000) => {
         });
 
         console.log(`Navigating to market.tonnel.network for gift: ${giftName}`);
-        await page.goto('https://market.tonnel.network', { waitUntil: 'networkidle2', timeout: 60000 });
+        await page.goto('https://market.tonnel.network', { waitUntil: 'domcontentloaded', timeout: 30000 }); // Reduced timeout
+        console.log(`Navigation completed for ${giftName}`);
 
         console.log(`Fetching data for gift: ${giftName}`);
         const response = await page.evaluate(async (giftName) => {
@@ -87,6 +96,7 @@ const makeWeekRequest = async (giftName, retries = 3, backoff = 10000) => {
 
             return await res.json();  
         }, giftName);  
+        console.log(`Data fetched for ${giftName}`);
 
         const firstObject = response[0];
         if (!firstObject || !firstObject.price) {
@@ -111,8 +121,8 @@ const makeWeekRequest = async (giftName, retries = 3, backoff = 10000) => {
         return true;
     } catch (error) {
         console.error(`Error processing gift ${giftName}: ${error.stack}`);
-        if ((error.message.includes('429') || error.message.includes('502')) && retries > 0) {
-            console.log(`Error (429 or 502) for ${giftName}. Retrying in ${backoff / 1000} seconds... (${retries} retries left)`);
+        if ((error.name === 'TimeoutError' || error.message.includes('429') || error.message.includes('502')) && retries > 0) {
+            console.log(`Error (timeout, 429, or 502) for ${giftName}. Retrying in ${backoff / 1000} seconds... (${retries} retries left)`);
             await delay(backoff);
             return makeWeekRequest(giftName, retries - 1, backoff * 2);
         }
@@ -130,8 +140,7 @@ export const addData = async () => {
     console.log(`Data update started at: ${new Date().toLocaleTimeString()}`);
     
     try {
-        // Fetch TON price with retries and caching
-        const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+        const oneHour = 60 * 60 * 1000;
         if (!lastTonFetchTime || (Date.now() - lastTonFetchTime) > oneHour) {
             ton = await fetchTonPriceWithRetry();
         } else {
@@ -141,7 +150,7 @@ export const addData = async () => {
         let gifts;
         try {
             gifts = await getNames();
-            console.log(`Fetched ${gifts.length} gifts`);
+            console.log(`Fetched ${gifts.length} gifts`, gifts);
         } catch (error) {
             console.error(`Failed to fetch gift names: ${error.stack}`);
             gifts = [];
@@ -178,6 +187,6 @@ export const addData = async () => {
         console.log(`Data update completed at: ${new Date().toLocaleTimeString()}`);
     } catch (error) {
         console.error(`Unexpected error in addData: ${error.stack}`);
-        throw error; // Let endpoint handle
+        throw error;
     }
 };
