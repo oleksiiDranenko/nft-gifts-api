@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-import { getDate, getTonPrice } from "../functions.js";
+import { getDate, getTonPrice } from "./functions.js";
 import randomUseragent from "random-useragent";
 import { addWeekData } from "../routes/weekData.js";
 import { addLifeData } from "../routes/lifeData.js";
