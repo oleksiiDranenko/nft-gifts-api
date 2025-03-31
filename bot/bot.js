@@ -164,8 +164,8 @@ export const addData = async () => {
             } else {
                 console.log(`Failed to process gift: ${gift}, continuing to next gift`);
             }
-            console.log(`Waiting 10 seconds before next gift...`);
-            await delay(10000);
+            console.log(`Waiting 5 seconds before next gift...`);
+            await delay(5000);
             console.log(`Delay completed, moving to next gift`);
         }
 
