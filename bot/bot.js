@@ -106,7 +106,7 @@ const makeWeekRequest = async (giftName, attempt = 1) => {
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 export const run = async () => {
-    console.log(`Request started at: ${new Date().toLocaleTimeString()}`);
+    console.log(`Request started at: ${new Date().toLocaleTimeString('en-US', { timeZone: 'Europe/Berlin' })}`);
 
     try {
         ton = await getTonPrice();
@@ -142,6 +142,7 @@ export const scheduleNextRun = async () => {
             delayMs = nextRun - now;
         }
 
+        console.log(`Scheduling now at: ${now.toLocaleTimeString('en-US', { timeZone: 'Europe/Berlin' })}`);
         console.log(`Next request scheduled at: ${nextRun.toLocaleTimeString('en-US', { timeZone: 'Europe/Berlin' })} (${delayMs / 1000} sec delay)`);
 
         const { date: updatedDate } = getDate('Europe/Berlin');
@@ -160,7 +161,11 @@ export const scheduleNextRun = async () => {
             currentDate = updatedDate;
         }
 
-        setTimeout(run, delayMs);
+        const timeoutId = setTimeout(() => {
+            console.log(`setTimeout triggered at: ${new Date().toLocaleTimeString('en-US', { timeZone: 'Europe/Berlin' })}`);
+            run();
+        }, delayMs);
+        console.log(`setTimeout set with ID: ${timeoutId}`);
     } catch (error) {
         console.error("Error in scheduleNextRun:", error.message);
         setTimeout(run, intervalMinutes * 60 * 1000);
