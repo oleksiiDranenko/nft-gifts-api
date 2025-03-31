@@ -66,7 +66,7 @@ const makeWeekRequest = async (giftName, retries = 3, backoff = 10000) => {
         });
 
         console.log(`Navigating to market.tonnel.network for gift: ${giftName}`);
-        await page.goto('https://market.tonnel.network', { waitUntil: 'domcontentloaded', timeout: 30000 }); // Reduced timeout
+        await page.goto('https://market.tonnel.network', { waitUntil: 'domcontentloaded', timeout: 30000 });
         console.log(`Navigation completed for ${giftName}`);
 
         console.log(`Fetching data for gift: ${giftName}`);
@@ -157,13 +157,16 @@ export const addData = async () => {
         }
 
         for (let gift of gifts) {
+            console.log(`Starting processing for gift: ${gift}`);
             const success = await makeWeekRequest(gift);
             if (success) {
                 console.log(`Successfully processed gift: ${gift}`);
             } else {
                 console.log(`Failed to process gift: ${gift}, continuing to next gift`);
             }
+            console.log(`Waiting 10 seconds before next gift...`);
             await delay(10000);
+            console.log(`Delay completed, moving to next gift`);
         }
 
         const { date: updatedDate } = getDate();
