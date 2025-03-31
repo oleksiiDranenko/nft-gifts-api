@@ -6,7 +6,7 @@ import { WeekRouter } from './routes/weekData.js';
 import { LifeRouter } from './routes/lifeData.js';
 import { GiftsRouter } from './routes/gifts.js';
 import { UserRouter } from './routes/users.js';
-import { scheduleNextRun } from './bot/bot.js';
+import { addData } from './bot/bot.js';
 
 process.removeAllListeners('warning');
 
@@ -26,6 +26,17 @@ const port = process.env.PORT || 3001;
 
 process.env.TZ = 'Europe/Berlin';
 
+app.get('/update-data', async (req, res) => {
+    console.log('Data update requested');
+    try {
+        await addData();
+        res.status(200).json({ message: 'Data update completed' });
+    } catch (error) {
+        console.error('Error in /update-data:', error.message);
+        res.status(500).json({ message: 'Data update failed', error: error.message });
+    }
+});
+
 const startServer = async () => {
     try {
         await mongoose.connect(dbConnectionString, {
@@ -36,7 +47,6 @@ const startServer = async () => {
 
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);
-            scheduleNextRun();
         });
     } catch (err) {
         console.error('Error connecting to MongoDB:', err);
