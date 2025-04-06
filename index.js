@@ -2,11 +2,12 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import cron from 'node-cron'; // Add this import
+import cron from 'node-cron';
 import { WeekRouter } from './routes/weekData.js';
 import { LifeRouter } from './routes/lifeData.js';
 import { GiftsRouter } from './routes/gifts.js';
 import { UserRouter } from './routes/users.js';
+import { SubscriptionRouter } from './routes/subscription.js';
 import { addData } from './bot/bot.js';
 
 process.removeAllListeners('warning');
@@ -20,6 +21,7 @@ app.use('/weekChart', WeekRouter);
 app.use('/lifeChart', LifeRouter);
 app.use('/gifts', GiftsRouter);
 app.use('/users', UserRouter);
+app.use('/subscriptions', SubscriptionRouter)
 
 dotenv.config();
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
@@ -27,7 +29,7 @@ const port = process.env.PORT || 3001;
 
 process.env.TZ = 'Europe/Berlin';
 
-// Keep the endpoint for manual testing
+
 app.get('/update-data', async (req, res) => {
     console.log('Data update requested at:', new Date().toISOString());
     try {
@@ -40,7 +42,7 @@ app.get('/update-data', async (req, res) => {
     }
 });
 
-// Add internal cron job to run hourly
+
 cron.schedule('0 * * * *', async () => {
     console.log('Cron job triggered at:', new Date().toISOString());
     try {
