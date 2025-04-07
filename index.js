@@ -27,7 +27,7 @@ dotenv.config();
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
 const port = process.env.PORT || 3001;
 
-process.env.TZ = 'Europe/Berlin';
+process.env.TZ = 'Europe/London';
 
 
 app.get('/update-data', async (req, res) => {
