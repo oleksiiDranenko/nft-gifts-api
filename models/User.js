@@ -6,7 +6,8 @@ const AssetSchema = new mongoose.Schema({
 })
 
 const UserSchema = new mongoose.Schema({
-    walletId: { type: String, required: true },
+    telegramId: { type: String, required: true },
+    username: { type: String, required: true },
     savedList: { type: [String], required: true },
     assets: { type: [AssetSchema], required: true },
     ton: { type: Number, required: true },

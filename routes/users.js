@@ -3,13 +3,13 @@ import { UserModel } from '../models/User.js';
 
 const router = express.Router();
 
-router.get('/check-account/:walletId', async (req, res) => {
+router.get('/check-account/:telegramId', async (req, res) => {
     
-    const { walletId } = req.params;
+    const { telegramId } = req.params;
 
     try {
 
-        const user = await UserModel.findOne({ walletId: walletId })
+        const user = await UserModel.findOne({ telegramId })
         
         if (user) {
             res.json(user)
@@ -27,17 +27,18 @@ router.get('/check-account/:walletId', async (req, res) => {
 })
 
 router.post('/create-account', async (req, res) => {
-    const { walletId } = req.body;
+    const { telegramId, username } = req.body;
 
     try {
-        const user = await UserModel.findOne({ walletId: walletId });
+        const user = await UserModel.findOne({ telegramId });
 
         if (user) {
             return res.json({ message: 'Account for this wallet already exists' });
         }
 
         const newUser = new UserModel({
-            walletId,
+            telegramId,
+            username,
             savedList: [],
             assets: [],
             ton: 0,
@@ -53,14 +54,14 @@ router.post('/create-account', async (req, res) => {
     }
 });
 
-router.patch('/update-account/:walletId', async (req, res) => {
-    const { walletId } = req.params;
-    const { savedList, assets, ton, usd } = req.body;
+router.patch('/update-account/:telegramId', async (req, res) => {
+    const { telegramId } = req.params;
+    const { username, savedList, assets, ton, usd } = req.body;
 
     try {
         const updatedUser = await UserModel.findOneAndUpdate(
-            { walletId },
-            { $set: { savedList, assets, ton, usd } },
+            { telegramId },
+            { $set: { username, savedList, assets, ton, usd } },
             { new: true, runValidators: true }
         );
 
