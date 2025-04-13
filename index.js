@@ -8,6 +8,8 @@ import { LifeRouter } from './routes/lifeData.js';
 import { GiftsRouter } from './routes/gifts.js';
 import { UserRouter } from './routes/users.js';
 import { SubscriptionRouter } from './routes/subscription.js';
+import { IndexRouter } from './routes/index.js';
+import { addIndexData, IndexDataRouter } from './routes/indexData.js';
 import { addData } from './bot/bot.js';
 
 process.removeAllListeners('warning');
@@ -22,6 +24,8 @@ app.use('/lifeChart', LifeRouter);
 app.use('/gifts', GiftsRouter);
 app.use('/users', UserRouter);
 app.use('/subscriptions', SubscriptionRouter)
+app.use('/indexes', IndexRouter)
+app.use('/indexData', IndexDataRouter)
 
 dotenv.config();
 const dbConnectionString = process.env.DB_CONNECTION_STRING;

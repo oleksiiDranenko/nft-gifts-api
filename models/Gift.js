@@ -16,7 +16,7 @@ const GiftSchema = new mongoose.Schema(
     { 
         collection: 'gifts',
         versionKey: false
-     } 
+    } 
 );
 
 export const GiftModel = mongoose.model('gifts', GiftSchema)

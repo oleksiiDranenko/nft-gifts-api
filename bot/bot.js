@@ -4,6 +4,7 @@ import randomUseragent from "random-useragent";
 import { addWeekData } from "../routes/weekData.js";
 import { addLifeData } from "../routes/lifeData.js";
 import { getNames } from "../routes/gifts.js";
+import { addIndexData } from "../routes/indexData.js";
 
 let ton;
 let { date: currentDate } = getDate();
@@ -150,23 +151,19 @@ export const addData = async () => {
         let gifts;
         try {
             gifts = await getNames();
-            console.log(`Fetched ${gifts.length} gifts`, gifts);
         } catch (error) {
             console.error(`Failed to fetch gift names: ${error.stack}`);
             gifts = [];
         }
 
         for (let gift of gifts) {
-            console.log(`Starting processing for gift: ${gift}`);
             const success = await makeWeekRequest(gift);
-            if (success) {
-                console.log(`Successfully processed gift: ${gift}`);
-            } else {
+            if (!success) {
                 console.log(`Failed to process gift: ${gift}, continuing to next gift`);
-            }
-            console.log(`Waiting 5 seconds before next gift...`);
+            } 
+            
             await delay(5000);
-            console.log(`Delay completed, moving to next gift`);
+
         }
 
         const { date: updatedDate } = getDate();
@@ -179,6 +176,7 @@ export const addData = async () => {
 
                 const giftsList = await getNames();
                 await addLifeData(giftsList, formattedPreviousDate);
+                await addIndexData(formattedPreviousDate)
 
                 console.log('Added previous day data');
                 currentDate = updatedDate;
