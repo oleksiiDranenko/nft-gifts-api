@@ -9,15 +9,15 @@ const router = express.Router();
 router.get('/get-all/:indexId', async (req, res) => {
     const { indexId } = req.params;
     try {
-        const indexExists = await IndexModel.findOne({ indexId });
+        const indexExists = await IndexModel.findById(indexId)
         if (!indexExists) {
-            return res.status(404).json({ error: `Index ${indexId} not found` });
+            return res.status(404).json({ error: `Index ${indexId} not found` })
         }
 
-        const dataList = await IndexDataModel.find({ indexId });
+        const dataList = await IndexDataModel.find({ indexId })
         res.json(dataList);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message })
     }
 });
 
