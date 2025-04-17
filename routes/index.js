@@ -20,7 +20,7 @@ router.get('/get-all', async (req, res) => {
 
 router.get('/get-one/:indexId', async (req, res) => {
 
-    const {indexId} = req.query
+    const {indexId} = req.params
 
     try {
 
