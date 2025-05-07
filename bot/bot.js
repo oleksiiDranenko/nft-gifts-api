@@ -68,10 +68,12 @@ const configurePage = async (browser, giftName) => {
 };
 
 const fetchGiftData = async (page, giftName) => {
+  console.log(`Navigating to market for ${giftName}`);
   await page.goto("https://market.tonnel.network", {
     waitUntil: "domcontentloaded",
-    timeout: 30000,
+    timeout: 60000, // Increase to 60 seconds
   });
+  console.log(`Navigation complete for ${giftName}`);
 
   return page.evaluate(async (name) => {
     const response = await fetch("https://gifts2.tonnel.network/api/pageGifts", {
@@ -98,7 +100,7 @@ const fetchGiftData = async (page, giftName) => {
   }, giftName);
 };
 
-const fetchGiftDataWithRetry = async (page, giftName, retries = 3, backoff = 12000) => {
+const fetchGiftDataWithRetry = async (page, giftName, retries = 3, backoff = 10000) => {
   try {
     return await fetchGiftData(page, giftName);
   } catch (error) {
@@ -108,9 +110,10 @@ const fetchGiftDataWithRetry = async (page, giftName, retries = 3, backoff = 120
         error.message.includes("502")) &&
       retries > 0
     ) {
-      console.log(`Retrying fetchGiftData for ${giftName} in ${backoff / 1000}s... (${retries} retries left)`);
-      await delay(backoff);
-      return fetchGiftDataWithRetry(page, giftName, retries - 1, backoff * 2);
+      const cappedBackoff = Math.min(backoff, 60000); // Cap at 60 seconds
+      console.log(`Retrying fetchGiftData for ${giftName} in ${cappedBackoff / 1000}s... (${retries} retries left)`);
+      await delay(cappedBackoff);
+      return fetchGiftDataWithRetry(page, giftName, retries - 1, cappedBackoff * 2);
     }
     throw error;
   }
@@ -133,26 +136,19 @@ const processGiftData = (response, giftName) => {
   };
 };
 
-const processGift = async (giftName) => {
-  let browser;
+const processGift = async (giftName, browser) => {
   try {
     console.log(`Processing gift: ${giftName}`);
-    browser = await setupBrowser();
     const page = await configurePage(browser, giftName);
-    const response = await fetchGiftDataWithRetry(page, giftName); // Isolated retry logic
+    const response = await fetchGiftDataWithRetry(page, giftName);
     const giftData = processGiftData(response, giftName);
-
-    await addWeekData(giftData); // Called only once
+    await addWeekData(giftData);
     console.log(`Processed gift: ${giftName}`, giftData);
+    await page.close(); // Close the page, not the browser
     return true;
   } catch (error) {
     console.error(`Error processing gift ${giftName}: ${error.message}`);
     return false;
-  } finally {
-    if (browser) {
-      console.log(`Closing browser for ${giftName}`);
-      await browser.close();
-    }
   }
 };
 
@@ -178,6 +174,7 @@ const updateDailyData = async () => {
 
 export const addData = async () => {
   console.log(`Data update started at: ${new Date().toLocaleTimeString()}`);
+  let browser;
   try {
     if (!lastTonFetchTime || Date.now() - lastTonFetchTime > ONE_HOUR) {
       await fetchTonPrice();
@@ -190,10 +187,16 @@ export const addData = async () => {
       return [];
     });
 
+    browser = await setupBrowser();
     for (const gift of gifts) {
-      const success = await processGift(gift);
-      if (!success) console.log(`Failed to process gift: ${gift}`);
-      await delay(5000);
+      try {
+        const success = await processGift(gift, browser);
+        if (!success) console.log(`Failed to process gift: ${gift}`);
+        await delay(5000);
+      } catch (error) {
+        console.error(`Unexpected error processing gift ${gift}: ${error.message}`);
+        continue;
+      }
     }
 
     await updateDailyData();
@@ -201,5 +204,10 @@ export const addData = async () => {
   } catch (error) {
     console.error(`Unexpected error in addData: ${error.message}`);
     throw error;
+  } finally {
+    if (browser) {
+      console.log("Closing browser");
+      await browser.close();
+    }
   }
 };
