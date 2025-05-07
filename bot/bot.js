@@ -11,7 +11,24 @@ let tonPrice = null;
 let lastTonFetchTime = null;
 let currentDate = getDate().date;
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms) => {
+  console.log(`Delaying for ${ms / 1000} seconds...`);
+  return new Promise((resolve) => {
+    const start = Date.now();
+    setTimeout(() => {
+      console.log(`Delay of ${ms / 1000} seconds completed. Actual time: ${(Date.now() - start) / 1000} seconds`);
+      resolve();
+    }, ms);
+  });
+};
+
+const logMemoryUsage = () => {
+  const used = process.memoryUsage();
+  console.log("Memory Usage:");
+  for (let key in used) {
+    console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+  }
+};
 
 const fetchTonPrice = async (retries = 3, backoff = 5000) => {
   try {
@@ -33,45 +50,57 @@ const fetchTonPrice = async (retries = 3, backoff = 5000) => {
 
 const setupBrowser = async () => {
   return puppeteer.launch({
-    headless: true,
+    headless: "new",
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
       "--single-process",
+      "--no-zygote",
+      "--disable-background-networking",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding",
     ],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    protocolTimeout: 60000,
   });
 };
 
 const configurePage = async (browser, giftName) => {
   const page = await browser.newPage();
-  const userAgent = randomUseragent.getRandom();
-  await page.setUserAgent(userAgent);
-  console.log(`Set User-Agent for ${giftName}: ${userAgent}`);
+  try {
+    const userAgent = randomUseragent.getRandom();
+    await page.setUserAgent(userAgent);
+    console.log(`Set User-Agent for ${giftName}: ${userAgent}`);
 
-  await page.setRequestInterception(true);
-  page.on("request", (request) => {
-    request.continue({
-      headers: {
-        ...request.headers(),
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        Accept: "*/*",
-        "Content-Type": "application/json",
-        Origin: "https://market.tonnel.network",
-        Referer: "https://market.tonnel.network/",
-      },
+    await page.setRequestInterception(true);
+    page.on("request", (request) => {
+      request.continue({
+        headers: {
+          ...request.headers(),
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+          Accept: "*/*",
+          "Content-Type": "application/json",
+          Origin: "https://market.tonnel.network",
+          Referer: "https://market.tonnel.network/",
+        },
+      });
     });
-  });
 
-  return page;
+    return page;
+  } catch (error) {
+    await page.close();
+    throw error;
+  }
 };
 
 const fetchGiftData = async (page, giftName) => {
   console.log(`Navigating to market for ${giftName}`);
   await page.goto("https://market.tonnel.network", {
     waitUntil: "domcontentloaded",
-    timeout: 60000, // Increase to 60 seconds
+    timeout: 60000,
   });
   console.log(`Navigation complete for ${giftName}`);
 
@@ -100,7 +129,7 @@ const fetchGiftData = async (page, giftName) => {
   }, giftName);
 };
 
-const fetchGiftDataWithRetry = async (page, giftName, retries = 3, backoff = 10000) => {
+const fetchGiftDataWithRetry = async (page, giftName, retries = 3, backoff = 15000) => {
   try {
     return await fetchGiftData(page, giftName);
   } catch (error) {
@@ -110,7 +139,7 @@ const fetchGiftDataWithRetry = async (page, giftName, retries = 3, backoff = 100
         error.message.includes("502")) &&
       retries > 0
     ) {
-      const cappedBackoff = Math.min(backoff, 60000); // Cap at 60 seconds
+      const cappedBackoff = Math.min(backoff, 60000);
       console.log(`Retrying fetchGiftData for ${giftName} in ${cappedBackoff / 1000}s... (${retries} retries left)`);
       await delay(cappedBackoff);
       return fetchGiftDataWithRetry(page, giftName, retries - 1, cappedBackoff * 2);
@@ -137,18 +166,24 @@ const processGiftData = (response, giftName) => {
 };
 
 const processGift = async (giftName, browser) => {
+  let page;
   try {
     console.log(`Processing gift: ${giftName}`);
-    const page = await configurePage(browser, giftName);
+    page = await configurePage(browser, giftName);
     const response = await fetchGiftDataWithRetry(page, giftName);
     const giftData = processGiftData(response, giftName);
+    console.log(`Adding week data for ${giftName}`);
     await addWeekData(giftData);
-    console.log(`Processed gift: ${giftName}`, giftData);
-    await page.close(); // Close the page, not the browser
+    console.log(`Week data added for ${giftName}`);
     return true;
   } catch (error) {
     console.error(`Error processing gift ${giftName}: ${error.message}`);
     return false;
+  } finally {
+    if (page) {
+      console.log(`Closing page for ${giftName}`);
+      await page.close();
+    }
   }
 };
 
@@ -176,6 +211,7 @@ export const addData = async () => {
   console.log(`Data update started at: ${new Date().toLocaleTimeString()}`);
   let browser;
   try {
+    logMemoryUsage();
     if (!lastTonFetchTime || Date.now() - lastTonFetchTime > ONE_HOUR) {
       await fetchTonPrice();
     } else {
@@ -186,13 +222,17 @@ export const addData = async () => {
       console.error(`Failed to fetch gift names: ${error.message}`);
       return [];
     });
+    console.log(`Fetched ${gifts.length} gifts: ${gifts.join(", ")}`);
 
     browser = await setupBrowser();
+    let processed = 0;
     for (const gift of gifts) {
+      console.log(`Processing gift ${++processed}/${gifts.length}: ${gift}`);
       try {
         const success = await processGift(gift, browser);
         if (!success) console.log(`Failed to process gift: ${gift}`);
-        await delay(5000);
+        await delay(10000); // Increased to 10 seconds
+        logMemoryUsage();
       } catch (error) {
         console.error(`Unexpected error processing gift ${gift}: ${error.message}`);
         continue;
@@ -203,11 +243,13 @@ export const addData = async () => {
     console.log(`Data update completed at: ${new Date().toLocaleTimeString()}`);
   } catch (error) {
     console.error(`Unexpected error in addData: ${error.message}`);
+    logMemoryUsage();
     throw error;
   } finally {
     if (browser) {
       console.log("Closing browser");
       await browser.close();
     }
+    logMemoryUsage();
   }
 };
