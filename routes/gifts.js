@@ -17,15 +17,15 @@ router.get('/', async (req, res) => {
                 .limit(1)
                 .lean();
 
-                const lastWeekData = await WeekChartModel.findOne({ name: gift.name })
+            const lastWeekData = await WeekChartModel.findOne({ name: gift.name })
                 .sort({ createdAt: 1 })
                 .lean();
         
             const lastMonthData = await LifeChartModel.find({ name: gift.name })
-                .sort({ createdAt: -1 })
+                .sort({ date: -1 })
                 .skip(29)
                 .limit(1)
-                .lean()
+                .lean();
 
             const currentPrice = await WeekChartModel.find({ name: gift.name })
                 .sort({ createdAt: -1 })
