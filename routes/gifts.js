@@ -1,6 +1,7 @@
 import express from 'express';
 import { GiftModel } from '../models/Gift.js';
 import { WeekChartModel } from '../models/WeekChart.js';
+import { LifeChartModel } from '../models/LifeChart.js'
 
 const router = express.Router();
 
@@ -16,6 +17,16 @@ router.get('/', async (req, res) => {
                 .limit(1)
                 .lean();
 
+            const lastWeekData = await WeekChartModel.findOne({ name: gift.name })
+                .sort({ createdAt: 1 })
+                .lean();
+
+            const lastMonthData = await LifeChartModel.find({ name: gift.name })
+            .sort({ createdAt: -1 })
+            .skip(29)
+            .limit(1)
+            .lean();
+
             const currentPrice = await WeekChartModel.find({ name: gift.name })
                 .sort({ createdAt: -1 })
                 .limit(1)
@@ -25,6 +36,13 @@ router.get('/', async (req, res) => {
                 ...gift.toObject(),
                 tonPrice24hAgo: last24hData.length ? last24hData[0].priceTon : null,
                 usdPrice24hAgo: last24hData.length ? last24hData[0].priceUsd : null,
+
+                tonPriceWeekAgo: lastWeekData ? lastWeekData.priceTon : null,
+                usdPriceWeekAgo: lastWeekData ? lastWeekData.priceUsd : null,
+
+                tonPriceMonthAgo: lastMonthData.length ? lastMonthData[0].priceTon : null,
+                usdPriceMonthAgo: lastMonthData.length ? lastMonthData[0].priceUsd : null,
+                
                 priceTon: currentPrice.length ?  currentPrice[0].priceTon : null,
                 priceUsd: currentPrice.length ?  currentPrice[0].priceUsd : null
             });
