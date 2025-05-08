@@ -17,20 +17,20 @@ router.get('/', async (req, res) => {
                 .limit(1)
                 .lean();
 
-            const lastWeekData = await WeekChartModel.findOne({ name: gift.name })
+                const lastWeekData = await WeekChartModel.findOne({ name: gift.name })
                 .sort({ createdAt: 1 })
                 .lean();
-
+        
             const lastMonthData = await LifeChartModel.find({ name: gift.name })
-            .sort({ createdAt: -1 })
-            .skip(29)
-            .limit(1)
-            .lean();
+                .sort({ createdAt: -1 })
+                .skip(29)
+                .limit(1)
+                .lean()
 
             const currentPrice = await WeekChartModel.find({ name: gift.name })
                 .sort({ createdAt: -1 })
                 .limit(1)
-                .lean();
+                .lean()
 
             finalGiftsList.push({
                 ...gift.toObject(),
@@ -42,7 +42,7 @@ router.get('/', async (req, res) => {
 
                 tonPriceMonthAgo: lastMonthData.length ? lastMonthData[0].priceTon : null,
                 usdPriceMonthAgo: lastMonthData.length ? lastMonthData[0].priceUsd : null,
-                
+
                 priceTon: currentPrice.length ?  currentPrice[0].priceTon : null,
                 priceUsd: currentPrice.length ?  currentPrice[0].priceUsd : null
             });
