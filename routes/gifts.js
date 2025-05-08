@@ -22,8 +22,8 @@ router.get('/', async (req, res) => {
                 .lean();
         
             const lastMonthData = await LifeChartModel.find({ name: gift.name })
-                .sort({ date: -1 })
-                .skip(29)
+                .sort({ _id: -1 })
+                .skip(29) 
                 .limit(1)
                 .lean();
 
