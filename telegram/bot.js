@@ -50,46 +50,42 @@ const initializeBot = (botToken) => {
     bot.command('list', async (ctx) => {
         try {
             const giftsList = await getGiftsList();
-            if (!giftsList || giftsList.length === 0) {
+            if (!giftsList?.length) {
                 return ctx.replyWithHTML('No gifts found.');
             }
 
-            // Calculate percentage change and sort by it (descending)
+            // Sort by absolute percentage change (descending)
             giftsList.sort((a, b) => {
                 const aChange = (a.priceTon && a.tonPrice24hAgo && a.tonPrice24hAgo !== 0)
-                    ? ((a.priceTon - a.tonPrice24hAgo) / a.tonPrice24hAgo) * 100
-                    : -Infinity; // N/A goes to the end
-                const bChange = (b.priceTon && b.tonPrice24hAgo && b.tonPrice24hAgo !== 0)
-                    ? ((b.priceTon - b.tonPrice24hAgo) / b.tonPrice24hAgo) * 100
+                    ? Math.abs((a.priceTon - a.tonPrice24hAgo) / a.tonPrice24hAgo * 100)
                     : -Infinity;
-                return bChange - aChange; // Descending order
+                const bChange = (b.priceTon && b.tonPrice24hAgo && b.tonPrice24hAgo !== 0)
+                    ? Math.abs((b.priceTon - b.tonPrice24hAgo) / b.tonPrice24hAgo * 100)
+                    : -Infinity;
+                return bChange - aChange;
             });
 
-            // Format the message
+            // Build messages
             const messages = [];
             let currentMessage = '';
 
             for (const gift of giftsList) {
                 // Escape special characters in gift name
-                const giftName = gift.name.replace(/[<>&]/g, (char) => ({
-                    '<': '<',
-                    '>': '>',
-                    '&': '&'
-                })[char]);
+                const giftName = gift.name.replace(/[<>&]/g, char => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[char]);
 
-                // Calculate percentage change
+                // Calculate percentage change and emoji
                 let percentageChange = 'N/A';
-                let emoji = '🟢'; // Default to green for N/A or positive/zero
+                let emoji = '🟢';
                 if (gift.priceTon && gift.tonPrice24hAgo && gift.tonPrice24hAgo !== 0) {
-                    const change = ((gift.priceTon - gift.tonPrice24hAgo) / gift.tonPrice24hAgo) * 100;
+                    const change = ((gift.priceTon - gift.tonPrice24hAgo) / a.tonPrice24hAgo) * 100;
                     percentageChange = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
                     emoji = change >= 0 ? '🟢' : '🔴';
                 }
 
-                // Format the gift line (name in bold, no priceTon)
+                // Format gift line
                 const giftLine = `${emoji} <b>${giftName}</b> ${percentageChange}\n`;
 
-                // Check if adding this line exceeds the 4000-character limit
+                // Handle Telegram's 4096-character limit
                 if (currentMessage.length + giftLine.length > 4000) {
                     messages.push(currentMessage);
                     currentMessage = giftLine;
@@ -98,20 +94,20 @@ const initializeBot = (botToken) => {
                 }
             }
 
-            // Add the last message
+            // Add final message
             if (currentMessage) {
                 messages.push(currentMessage);
             }
 
-            // Send each message part
+            // Send messages
             for (const message of messages) {
                 await ctx.replyWithHTML(message);
             }
         } catch (error) {
-            console.error('Error in /gifts command:', error);
+            console.error('Error in /list command:', error);
             await ctx.replyWithHTML('Failed to fetch gifts. Please try again later.');
-        }
-    });
+    }
+});
 
 
     // Debug: Log all incoming messages to confirm command receipt
