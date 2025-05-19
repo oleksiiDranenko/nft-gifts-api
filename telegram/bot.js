@@ -1,6 +1,6 @@
 import { Telegraf, Markup } from 'telegraf';
-import GiftModel from '../models/Gift.js'; 
-import WeekChartModel from '../models/WeekChart.js';
+import {GiftModel} from '../models/Gift.js'; 
+import {WeekChartModel} from '../models/WeekChart.js';
 
 const getGiftsList = async () => {
     try {
@@ -41,7 +41,7 @@ const initializeBot = (botToken) => {
         ctx.replyWithHTML(
             `<b>Welcome to Gift Charts!</b>\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts`,
             Markup.inlineKeyboard([
-                Markup.button.url('Open Mini App', 'https://gift-charts.vercel.app/')
+                Markup.button.url('Open Mini App', 'https://t.me/gift_charts_bot?startapp=launch')
             ])
         );
     });
