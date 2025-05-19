@@ -55,19 +55,15 @@ const initializeBot = (botToken) => {
             }
 
             // Sort by absolute percentage change (descending)
-            // Calculate absolute percentage change and sort by it (descending)
-giftsList.sort((a, b) => {
-    const getChange = (gift) => {
-        if (gift.priceTon && gift.tonPrice24hAgo && gift.tonPrice24hAgo !== 0) {
-            return Math.abs((gift.priceTon - gift.tonPrice24hAgo) / gift.tonPrice24hAgo) * 100;
-        }
-        return -Infinity; // Send to end if data is invalid
-    };
-
-    return getChange(b) - getChange(a); // Sort descending by absolute change
-});
-
-
+            giftsList.sort((a, b) => {
+                const aChange = (a.priceTon && a.tonPrice24hAgo && a.tonPrice24hAgo !== 0)
+                    ? Math.abs((a.priceTon - a.tonPrice24hAgo) / a.tonPrice24hAgo * 100)
+                    : -Infinity;
+                const bChange = (b.priceTon && b.tonPrice24hAgo && b.tonPrice24hAgo !== 0)
+                    ? Math.abs((b.priceTon - b.tonPrice24hAgo) / b.tonPrice24hAgo * 100)
+                    : -Infinity;
+                return bChange - aChange;
+            });
 
             // Build messages
             const messages = [];
@@ -81,7 +77,7 @@ giftsList.sort((a, b) => {
                 let percentageChange = 'N/A';
                 let emoji = '🟢';
                 if (gift.priceTon && gift.tonPrice24hAgo && gift.tonPrice24hAgo !== 0) {
-                    const change = ((gift.priceTon - gift.tonPrice24hAgo) / a.tonPrice24hAgo) * 100;
+                    const change = ((gift.priceTon - gift.tonPrice24hAgo) / gift.tonPrice24hAgo) * 100;
                     percentageChange = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
                     emoji = change >= 0 ? '🟢' : '🔴';
                 }
