@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cron from 'node-cron';
-import { Telegraf, Markup } from 'telegraf';
+import { initializeBot } from './telegram/bot.js'; 
 import { WeekRouter } from './routes/weekData.js';
 import { LifeRouter } from './routes/lifeData.js';
 import { GiftsRouter } from './routes/gifts.js';
@@ -18,26 +18,9 @@ process.removeAllListeners('warning');
 const app = express();
 
 dotenv.config();
-const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
-// Handle /start command with HTML formatting
-bot.start((ctx) => {
-    ctx.replyWithHTML(
-        `<b>Welcome to Gift Charts!</b>\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts`,
-        Markup.inlineKeyboard([
-            Markup.button.url('Open Mini App', 'https://gift-charts.vercel.app/')
-        ])
-    );
-});
-
-// Launch the bot
-bot.launch()
-    .then(() => console.log('Telegram bot started'))
-    .catch((err) => console.error('Error starting Telegram bot:', err));
-
-// Enable graceful stop for the bot
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+// Initialize Telegram bot
+initializeBot(process.env.TELEGRAM_BOT_TOKEN);
 
 app.use(cors());
 app.use(express.json());
