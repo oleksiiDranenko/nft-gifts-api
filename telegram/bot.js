@@ -47,7 +47,7 @@ const initializeBot = (botToken) => {
     });
 
 
-    bot.command('gifts', async (ctx) => {
+    bot.command('list', async (ctx) => {
         try {
             const giftsList = await getGiftsList();
             if (!giftsList || giftsList.length === 0) {
