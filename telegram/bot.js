@@ -41,7 +41,7 @@ const initializeBot = (botToken) => {
         ctx.replyWithHTML(
             `<b>Welcome to Gift Charts!</b>\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts\n\nUse /list to get a list of Gifts with current prices\n\n`,
             Markup.inlineKeyboard([
-                Markup.button.url('Open Mini App', 'https://gift-charts.vercel.app/')
+                Markup.button.url('Open Mini App', 'https://t.me/gift_charts_bot?startapp=launch')
             ])
         );
     });
