@@ -55,15 +55,17 @@ const initializeBot = (botToken) => {
             }
 
             // Sort by absolute percentage change (descending)
-            giftsList.sort((a, b) => {
-                const aChange = (a.priceTon && a.tonPrice24hAgo && a.tonPrice24hAgo !== 0)
-                    ? Math.abs((a.priceTon - a.tonPrice24hAgo) / a.tonPrice24hAgo * 100)
-                    : -Infinity;
-                const bChange = (b.priceTon && b.tonPrice24hAgo && b.tonPrice24hAgo !== 0)
-                    ? Math.abs((b.priceTon - b.tonPrice24hAgo) / b.tonPrice24hAgo * 100)
-                    : -Infinity;
-                return bChange - aChange;
-            });
+            // Calculate absolute percentage change and sort by it (descending)
+giftsList.sort((a, b) => {
+    const aChange = (a.priceTon && a.tonPrice24hAgo && a.tonPrice24hAgo !== 0)
+        ? Math.abs((a.priceTon - a.tonPrice24hAgo) / a.tonPrice24hAgo) * 100
+        : -Infinity;
+    const bChange = (b.priceTon && b.tonPrice24hAgo && b.tonPrice24hAgo !== 0)
+        ? Math.abs((b.priceTon - b.tonPrice24hAgo) / b.tonPrice24hAgo) * 100
+        : -Infinity;
+    return bChange - aChange; // Descending order by absolute change
+});
+
 
             // Build messages
             const messages = [];
