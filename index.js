@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cron from 'node-cron';
-import { Telegraf } from 'telegraf'; // Import Telegraf for Telegram bot
+import { Telegraf, Markup } from 'telegraf'; // Import Markup for inline buttons
 import { WeekRouter } from './routes/weekData.js';
 import { LifeRouter } from './routes/lifeData.js';
 import { GiftsRouter } from './routes/gifts.js';
@@ -23,7 +23,12 @@ const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
 // Handle /start command
 bot.start((ctx) => {
-    ctx.reply('hello');
+    ctx.replyWithMarkdown(
+        `**Welcome to Gift Charts!**\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts`,
+        Markup.inlineKeyboard([
+            Markup.button.url('Open Mini App', 'https://gift-charts.vercel.app/')
+        ])
+    );
 });
 
 // Launch the bot
