@@ -1,6 +1,6 @@
 import { Telegraf, Markup } from 'telegraf';
-import GiftModel from '../models/GiftModel.js'; 
-import WeekChartModel from '../models/WeekChartModel.js';
+import GiftModel from '../models/Gift.js'; 
+import WeekChartModel from '../models/WeekChart.js';
 
 const getGiftsList = async () => {
     try {
