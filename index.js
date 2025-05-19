@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cron from 'node-cron';
-import { Telegraf, Markup } from 'telegraf'; // Import Markup for inline buttons
+import { Telegraf, Markup } from 'telegraf';
 import { WeekRouter } from './routes/weekData.js';
 import { LifeRouter } from './routes/lifeData.js';
 import { GiftsRouter } from './routes/gifts.js';
@@ -17,14 +17,13 @@ process.removeAllListeners('warning');
 
 const app = express();
 
-// Initialize Telegram bot with token from .env
 dotenv.config();
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
-// Handle /start command
+// Handle /start command with HTML formatting
 bot.start((ctx) => {
-    ctx.replyWithMarkdown(
-        `**Welcome to Gift Charts!**\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts`,
+    ctx.replyWithHTML(
+        `<b>Welcome to Gift Charts!</b>\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts`,
         Markup.inlineKeyboard([
             Markup.button.url('Open Mini App', 'https://gift-charts.vercel.app/')
         ])
