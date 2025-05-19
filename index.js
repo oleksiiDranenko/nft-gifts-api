@@ -57,7 +57,7 @@ if (telegramToken) {
                     [
                         {
                             text: 'Open Gift Charts Mini App',
-                            web_app: { url: 'https://t.me/gift_charts_bot?startapp=launch' } // Replace with your mini app URL
+                            web_app: { url: 'https://gift-charts.vercel.app/' } // Replace with your mini app URL
                         }
                     ]
                 ]
