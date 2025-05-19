@@ -45,6 +45,11 @@ if (telegramToken) {
     bot = new TelegramBot(telegramToken, { polling: true });
     console.log('Telegram bot initialized');
 
+    // Clear existing updates on startup to avoid conflicts
+    bot.getUpdates({ offset: -1 })
+        .then(() => console.log('Cleared existing updates'))
+        .catch((error) => console.error('Error clearing updates:', error));
+
     // Handle /start command
     bot.onText(/\/start/, (msg) => {
         const chatId = msg.chat.id;
@@ -57,7 +62,7 @@ if (telegramToken) {
                     [
                         {
                             text: 'Open Gift Charts Mini App',
-                            web_app: { url: 'https://gift-charts.vercel.app/' } // Replace with your mini app URL
+                            web_app: { url: 'https://gift-charts.vercel.app/' }
                         }
                     ]
                 ]
@@ -72,10 +77,33 @@ if (telegramToken) {
     // Log any bot errors
     bot.on('polling_error', (error) => {
         console.error('Telegram bot polling error:', error.stack);
+        // Restart polling after a delay if conflict occurs
+        if (error.code === 'ETELEGRAM' && error.response.body.error_code === 409) {
+            setTimeout(() => {
+                bot.stopPolling().then(() => bot.startPolling());
+            }, 5000);
+        }
     });
 } else {
     console.warn('TELEGRAM_BOT_TOKEN not found in .env. Telegram bot will not be initialized.');
 }
+
+// Graceful shutdown to stop polling
+process.on('SIGTERM', () => {
+    if (bot) {
+        bot.stopPolling()
+            .then(() => {
+                console.log('Polling stopped');
+                process.exit(0);
+            })
+            .catch((err) => {
+                console.error('Error stopping polling:', err);
+                process.exit(1);
+            });
+    } else {
+        process.exit(0);
+    }
+});
 
 // Update data endpoint
 app.get('/update-data', async (req, res) => {
