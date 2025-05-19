@@ -39,7 +39,7 @@ const initializeBot = (botToken) => {
     // Handle /start command
     bot.start((ctx) => {
         ctx.replyWithHTML(
-            `<b>Welcome to Gift Charts!</b>\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts`,
+            `<b>Welcome to Gift Charts!</b>\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts\n\nUse /list to get a list of Gifts with current prices`,
             Markup.inlineKeyboard([
                 Markup.button.url('Open Mini App', 'https://t.me/gift_charts_bot?startapp=launch')
             ])
@@ -47,12 +47,15 @@ const initializeBot = (botToken) => {
     });
 
 
-    bot.command('list', async (ctx) => {
+    bot.command('gifts', async (ctx) => {
         try {
             const giftsList = await getGiftsList();
             if (!giftsList || giftsList.length === 0) {
                 return ctx.replyWithHTML('No gifts found.');
             }
+
+            // Sort gifts by priceTon descending (high to low)
+            giftsList.sort((a, b) => (b.priceTon || 0) - (a.priceTon || 0));
 
             // Format the message
             const messages = [];
@@ -68,13 +71,15 @@ const initializeBot = (botToken) => {
 
                 // Calculate percentage change
                 let percentageChange = 'N/A';
+                let emoji = '🟢'; // Default to green for N/A or positive/zero change
                 if (gift.priceTon && gift.tonPrice24hAgo && gift.tonPrice24hAgo !== 0) {
                     const change = ((gift.priceTon - gift.tonPrice24hAgo) / gift.tonPrice24hAgo) * 100;
                     percentageChange = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
+                    emoji = change >= 0 ? '🟢' : '🔴';
                 }
 
-                // Format the gift line
-                const giftLine = `${giftName} - ${gift.priceTon || 'N/A'} TON (${gift.priceUsd ? `$${gift.priceUsd}` : 'N/A'}$) ${percentageChange}\n`;
+                // Format the gift line (removed priceUsd)
+                const giftLine = `${emoji} ${giftName} - ${gift.priceTon || 'N/A'} TON ${percentageChange}\n`;
 
                 // Check if adding this line exceeds the 4000-character limit
                 if (currentMessage.length + giftLine.length > 4000) {
