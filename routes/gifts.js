@@ -11,15 +11,15 @@ router.get('/', async (req, res) => {
       // Step 1: Fetch all gifts
       { $match: {} }, // Match all gifts (you can add filters if needed)
 
-      // Step 2: Lookup last 24h data from WeekChartModel
+      // Step 2: Lookup last 24h data from WeekChartModel (24 hours ago)
       {
         $lookup: {
-          from: 'weekcharts', // Collection name for WeekChartModel
+          from: 'weekChart', // Correct collection name for WeekChartModel
           let: { giftName: '$name' },
           pipeline: [
             { $match: { $expr: { $eq: ['$name', '$$giftName'] } } },
             { $sort: { createdAt: -1 } },
-            { $skip: 23 },
+            { $skip: 23 }, // Skip 23 records to get ~24 hours ago
             { $limit: 1 },
             { $project: { priceTon: 1, priceUsd: 1 } }
           ],
@@ -27,14 +27,14 @@ router.get('/', async (req, res) => {
         }
       },
 
-      // Step 3: Lookup last week data from WeekChartModel
+      // Step 3: Lookup last week data from WeekChartModel (oldest record)
       {
         $lookup: {
-          from: 'weekcharts',
+          from: 'weekChart', // Correct collection name for WeekChartModel
           let: { giftName: '$name' },
           pipeline: [
             { $match: { $expr: { $eq: ['$name', '$$giftName'] } } },
-            { $sort: { createdAt: 1 } },
+            { $sort: { createdAt: 1 } }, // Oldest first
             { $limit: 1 },
             { $project: { priceTon: 1, priceUsd: 1 } }
           ],
@@ -42,15 +42,15 @@ router.get('/', async (req, res) => {
         }
       },
 
-      // Step 4: Lookup last month data from LifeChartModel
+      // Step 4: Lookup last month data from LifeChartModel (30 days ago)
       {
         $lookup: {
-          from: 'lifecharts', // Collection name for LifeChartModel
+          from: 'lifeChart', // Correct collection name for LifeChartModel
           let: { giftName: '$name' },
           pipeline: [
             { $match: { $expr: { $eq: ['$name', '$$giftName'] } } },
             { $sort: { _id: -1 } },
-            { $skip: 29 },
+            { $skip: 29 }, // Skip 29 records to get ~30 days ago
             { $limit: 1 },
             { $project: { priceTon: 1, priceUsd: 1 } }
           ],
@@ -58,14 +58,14 @@ router.get('/', async (req, res) => {
         }
       },
 
-      // Step 5: Lookup current price from WeekChartModel
+      // Step 5: Lookup current price from WeekChartModel (most recent)
       {
         $lookup: {
-          from: 'weekcharts',
+          from: 'weekChart', // Correct collection name for WeekChartModel
           let: { giftName: '$name' },
           pipeline: [
             { $match: { $expr: { $eq: ['$name', '$$giftName'] } } },
-            { $sort: { createdAt: -1 } },
+            { $sort: { createdAt: -1 } }, // Most recent first
             { $limit: 1 },
             { $project: { priceTon: 1, priceUsd: 1 } }
           ],
