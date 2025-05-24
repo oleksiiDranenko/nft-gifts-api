@@ -5,6 +5,7 @@ import { addWeekData } from "../routes/weekData.js";
 import { addLifeData } from "../routes/lifeData.js";
 import { getNames } from "../routes/gifts.js";
 import { addIndexData } from "../routes/indexData.js";
+import { GiftModel } from "../models/Gift.js"; // Add this import
 
 const ONE_HOUR = 60 * 60 * 1000;
 let tonPrice = null;
@@ -104,7 +105,16 @@ const fetchGiftData = async (page, giftName) => {
   });
   console.log(`Navigation complete for ${giftName}`);
 
-  return page.evaluate(async (name) => {
+  // Check if the gift has preSale property
+  const gift = await GiftModel.findOne({ name: giftName }).select("preSale");
+  const isPreSale = gift?.preSale || false;
+
+  // Set the filter based on preSale status
+  const filter = isPreSale
+    ? `{"price":{"$exists":true},"buyer":{"$exists":false},"gift_name":"${giftName}","asset":"TON"}`
+    : `{"price":{"$exists":true},"refunded":{"$ne":true},"buyer":{"$exists":false},"export_at":{"$exists":true},"gift_name":"${giftName}","asset":"TON"}`;
+
+  return page.evaluate(async (name, filter) => {
     const response = await fetch("https://gifts2.tonnel.network/api/pageGifts", {
       method: "POST",
       headers: {
@@ -117,7 +127,7 @@ const fetchGiftData = async (page, giftName) => {
         page: 1,
         limit: 30,
         sort: '{"price":1,"gift_id":-1}',
-        filter: `{"price":{"$exists":true},"refunded":{"$ne":true},"buyer":{"$exists":false},"export_at":{"$exists":true},"gift_name":"${name}","asset":"TON"}`,
+        filter,
         ref: 0,
         price_range: null,
         user_auth: "",
@@ -126,7 +136,7 @@ const fetchGiftData = async (page, giftName) => {
 
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
     return response.json();
-  }, giftName);
+  }, giftName, filter);
 };
 
 const fetchGiftDataWithRetry = async (page, giftName, retries = 3, backoff = 15000) => {
