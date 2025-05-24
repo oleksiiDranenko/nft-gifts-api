@@ -5,7 +5,7 @@ import { addWeekData } from "../routes/weekData.js";
 import { addLifeData } from "../routes/lifeData.js";
 import { getNames } from "../routes/gifts.js";
 import { addIndexData } from "../routes/indexData.js";
-import { GiftModel } from "../models/Gift.js"; // Add this import
+import { GiftModel } from "../models/Gift.js";
 
 const ONE_HOUR = 60 * 60 * 1000;
 let tonPrice = null;
@@ -207,9 +207,18 @@ const updateDailyData = async () => {
     previousDate.setDate(previousDate.getDate() - 1);
     const formattedDate = previousDate.toLocaleDateString("en-GB").split("/").join("-");
 
+    // Fetch all gift names for addLifeData
     const giftsList = await getNames();
+    
+    // Fetch non-preSale gift names for addIndexData
+    const nonPreSaleGifts = await GiftModel.find({ preSale: { $ne: true } }).select("name -_id");
+    const nonPreSaleGiftNames = nonPreSaleGifts.map(gift => gift.name);
+
+    console.log(`Processing life data for ${giftsList.length} gifts: ${giftsList.join(", ")}`);
+    console.log(`Processing index data for ${nonPreSaleGiftNames.length} non-preSale gifts: ${nonPreSaleGiftNames.join(", ")}`);
+
     await addLifeData(giftsList, formattedDate);
-    await addIndexData(formattedDate);
+    await addIndexData(nonPreSaleGiftNames, formattedDate);
     console.log("Added previous day data");
     currentDate = updatedDate;
   } catch (error) {
