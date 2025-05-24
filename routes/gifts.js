@@ -149,7 +149,7 @@ router.post('/', async (req, res) => {
 
     console.log(req.body);
     const {
-        name, image, supply, initSupply, releaseDate, starsPrice, upgradePrice, initTonPrice, initUsdPrice
+        name, image, supply, initSupply, releaseDate, starsPrice, upgradePrice, initTonPrice, initUsdPrice, preSale
     } = req.body;
 
     try {
@@ -163,7 +163,8 @@ router.post('/', async (req, res) => {
             starsPrice, 
             upgradePrice, 
             initTonPrice, 
-            initUsdPrice
+            initUsdPrice,
+            preSale
         })
         
         await newGiftData.save()
