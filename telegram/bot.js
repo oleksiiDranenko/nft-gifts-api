@@ -110,10 +110,6 @@ const initializeBot = (botToken) => {
         }
     });
 
-    // Log all incoming messages
-    bot.on('text', (ctx) => {
-        console.log(`Received message: ${ctx.message.text}`);
-    });
 
     // Launch the bot
     bot.launch()
