@@ -37,21 +37,29 @@ export const addLifeData = async (giftsList, date) => {
 
             const avgPriceTon = list.length > 0 ? parseFloat((sumTon / list.length).toFixed(3)) : 0;
             const avgPriceUsd = list.length > 0 ? parseFloat((sumUsd / list.length).toFixed(3)) : 0;
-            
+
+            const openTon = list.length > 0 ? list[0].priceTon : 0;
+            const closeTon = list.length > 0 ? list[list.length - 1].priceTon : 0; 
+            const highTon = list.length > 0 ? Math.max(...list.map(item => item.priceTon)) : 0;
+            const lowTon = list.length > 0 ? Math.min(...list.map(item => item.priceTon)) : 0;
+
             const newObject = new LifeChartModel({
                 name: gift,
                 date,
                 priceTon: avgPriceTon,
-                priceUsd: avgPriceUsd
+                priceUsd: avgPriceUsd,
+                openTon,
+                closeTon,
+                highTon,
+                lowTon
             });
 
             await newObject.save();
         }
-
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
-}
+};
 
 
 

@@ -5,7 +5,11 @@ const LifeChartSchema = new mongoose.Schema(
         name: { type: String, required: true },
         date: { type: String, required: true },
         priceTon: { type: Number, required: true },
-        priceUsd: { type: Number, required: true }
+        priceUsd: { type: Number, required: true },
+        openTon: { type: Number, required: false },
+        closeTon: { type: Number, required: false },
+        highTon: { type: Number, required: false },
+        lowTon: { type: Number, required: false },
     },
     { 
         collection: 'lifeChart',
