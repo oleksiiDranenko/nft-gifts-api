@@ -19,7 +19,6 @@ const app = express();
 
 dotenv.config();
 
-// Initialize Telegram bot
 initializeBot(process.env.TELEGRAM_BOT_TOKEN);
 
 app.use(cors());
@@ -59,6 +58,7 @@ cron.schedule('0 * * * *', async () => {
         console.error('Error in cron job:', error.stack);
     }
 });
+
 
 const startServer = async () => {
     try {
