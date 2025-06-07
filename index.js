@@ -12,6 +12,7 @@ import { SubscriptionRouter } from './routes/subscription.js';
 import { IndexRouter } from './routes/index.js';
 import { IndexDataRouter } from './routes/indexData.js';
 import { addData } from './bot/bot.js';
+import { migrateTelegramIds } from './utils/migrateUsers.js';
 
 process.removeAllListeners('warning');
 
@@ -60,6 +61,7 @@ cron.schedule('0 * * * *', async () => {
 });
 
 
+
 const startServer = async () => {
     try {
         await mongoose.connect(dbConnectionString, {
@@ -67,6 +69,9 @@ const startServer = async () => {
             useUnifiedTopology: true,
         });
         console.log('Successfully connected to MongoDB');
+
+        // ✅ Migrate telegram IDs after DB connects
+        await migrateTelegramIds();
 
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);

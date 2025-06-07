@@ -1,44 +1,39 @@
 import express from 'express'
 import { UserModel } from '../models/User.js';
+import {hashValue} from '../utils/hash.js'
 
 const router = express.Router();
 
 router.get('/check-account/:telegramId', async (req, res) => {
-    
-    const { telegramId } = req.params;
+    const hashedTelegramId = hashValue(req.params.telegramId);
 
     try {
+        const user = await UserModel.findOne({ telegramId: hashedTelegramId });
 
-        const user = await UserModel.findOne({ telegramId })
-        
         if (user) {
-            res.json(user)
+            res.json(user);
         } else {
-            res.json({
-                exists: false
-            })
+            res.json({ exists: false });
         }
-
     } catch (error) {
-        res.json({
-            message: error
-        })
+        res.json({ message: error });
     }
-})
+});
 
 router.post('/create-account', async (req, res) => {
-    const { telegramId, username } = req.body;
+    const hashedTelegramId = hashValue(req.body.telegramId);
+    const username = req.body.username; // optional: hashValue(username)
 
     try {
-        const user = await UserModel.findOne({ telegramId });
+        const existing = await UserModel.findOne({ telegramId: hashedTelegramId });
 
-        if (user) {
-            return res.json({ message: 'Account for this wallet already exists' });
+        if (existing) {
+            return res.json({ message: 'Account already exists' });
         }
 
         const newUser = new UserModel({
-            telegramId,
-            username,
+            telegramId: hashedTelegramId,
+            username, // consider hashing if needed
             savedList: [],
             assets: [],
             ton: 0,
@@ -48,33 +43,40 @@ router.post('/create-account', async (req, res) => {
         await newUser.save();
 
         res.json({ message: 'Account created successfully' });
-
     } catch (error) {
         res.json({ message: 'Server error', error: error.message });
     }
 });
 
-router.patch('/update-account/:telegramId', async (req, res) => {
-    const { telegramId } = req.params;
-    const { username, savedList, assets, ton, usd } = req.body;
+
+router.post('/create-account', async (req, res) => {
+    const hashedTelegramId = hashValue(req.body.telegramId);
+    const username = req.body.username; // optional: hashValue(username)
 
     try {
-        const updatedUser = await UserModel.findOneAndUpdate(
-            { telegramId },
-            { $set: { username, savedList, assets, ton, usd } },
-            { new: true, runValidators: true }
-        );
+        const existing = await UserModel.findOne({ telegramId: hashedTelegramId });
 
-        if (!updatedUser) {
-            return res.status(404).json({ message: 'User not found' });
+        if (existing) {
+            return res.json({ message: 'Account already exists' });
         }
 
-        res.json({ message: 'Account updated successfully', user: updatedUser });
+        const newUser = new UserModel({
+            telegramId: hashedTelegramId,
+            username, // consider hashing if needed
+            savedList: [],
+            assets: [],
+            ton: 0,
+            usd: 0
+        });
 
+        await newUser.save();
+
+        res.json({ message: 'Account created successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.json({ message: 'Server error', error: error.message });
     }
 });
+
 
 
 
