@@ -1,6 +1,6 @@
-import express from 'express'
+import express from 'express';
 import { UserModel } from '../models/User.js';
-import {hashValue} from '../utils/hash.js'
+import { hashValue } from '../utils/hash.js';
 
 const router = express.Router();
 
@@ -8,43 +8,53 @@ router.get('/check-account/:telegramId', async (req, res) => {
     const hashedTelegramId = hashValue(req.params.telegramId);
 
     try {
+        console.log('Checking account for telegramId:', req.params.telegramId, 'Hashed:', hashedTelegramId);
         const user = await UserModel.findOne({ telegramId: hashedTelegramId });
 
         if (user) {
-            res.json(user);
-        } else {
-            res.json({ exists: false });
+            // Convert Mongoose document to plain object and include unhashed telegramId
+            const userObj = user.toObject();
+            return res.status(200).json({ ...userObj, telegramId: req.params.telegramId });
         }
+        return res.status(200).json({ exists: false });
     } catch (error) {
-        res.json({ message: error });
+        console.error('Error checking account:', error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
 router.post('/create-account', async (req, res) => {
     const hashedTelegramId = hashValue(req.body.telegramId);
-    const username = req.body.username; // optional: hashValue(username)
+    const { username } = req.body;
 
     try {
+        console.log('Creating account for telegramId:', req.body.telegramId, 'Hashed:', hashedTelegramId);
         const existing = await UserModel.findOne({ telegramId: hashedTelegramId });
 
         if (existing) {
-            return res.json({ message: 'Account already exists' });
+            return res.status(400).json({ message: 'Account already exists' });
         }
 
         const newUser = new UserModel({
             telegramId: hashedTelegramId,
-            username, // consider hashing if needed
+            username: username || 'Anonymous',
             savedList: [],
             assets: [],
             ton: 0,
-            usd: 0
+            usd: 0,
         });
 
         await newUser.save();
 
-        res.json({ message: 'Account created successfully' });
+        // Convert Mongoose document to plain object and include unhashed telegramId
+        const userObj = newUser.toObject();
+        return res.status(201).json({ 
+            message: 'Account created successfully', 
+            user: { ...userObj, telegramId: req.body.telegramId }
+        });
     } catch (error) {
-        res.json({ message: 'Server error', error: error.message });
+        console.error('Error creating account:', error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -53,6 +63,7 @@ router.patch('/update-account/:telegramId', async (req, res) => {
     const { username, savedList, assets, ton, usd } = req.body;
 
     try {
+        console.log('Updating account for telegramId:', req.params.telegramId, 'Hashed:', hashedTelegramId);
         const user = await UserModel.findOne({ telegramId: hashedTelegramId });
 
         if (!user) {
@@ -68,13 +79,16 @@ router.patch('/update-account/:telegramId', async (req, res) => {
 
         await user.save();
 
-        res.json({ message: 'User updated successfully', user });
+        // Convert Mongoose document to plain object and include unhashed telegramId
+        const userObj = user.toObject();
+        return res.status(200).json({ 
+            message: 'User updated successfully', 
+            user: { ...userObj, telegramId: req.params.telegramId }
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Error updating user:', error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
-
-
-
-export { router as UserRouter };  
+export { router as UserRouter };
