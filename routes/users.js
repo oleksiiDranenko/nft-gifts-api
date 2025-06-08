@@ -48,32 +48,29 @@ router.post('/create-account', async (req, res) => {
     }
 });
 
-
-router.post('/create-account', async (req, res) => {
-    const hashedTelegramId = hashValue(req.body.telegramId);
-    const username = req.body.username; // optional: hashValue(username)
+router.patch('/update-account/:telegramId', async (req, res) => {
+    const hashedTelegramId = hashValue(req.params.telegramId);
+    const { username, savedList, assets, ton, usd } = req.body;
 
     try {
-        const existing = await UserModel.findOne({ telegramId: hashedTelegramId });
+        const user = await UserModel.findOne({ telegramId: hashedTelegramId });
 
-        if (existing) {
-            return res.json({ message: 'Account already exists' });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
 
-        const newUser = new UserModel({
-            telegramId: hashedTelegramId,
-            username, // consider hashing if needed
-            savedList: [],
-            assets: [],
-            ton: 0,
-            usd: 0
-        });
+        // Update user fields
+        user.username = username || user.username;
+        user.savedList = savedList || user.savedList;
+        user.assets = assets || user.assets;
+        user.ton = ton !== undefined ? ton : user.ton;
+        user.usd = usd !== undefined ? usd : user.usd;
 
-        await newUser.save();
+        await user.save();
 
-        res.json({ message: 'Account created successfully' });
+        res.json({ message: 'User updated successfully', user });
     } catch (error) {
-        res.json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
