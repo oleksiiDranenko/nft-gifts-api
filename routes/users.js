@@ -8,7 +8,6 @@ router.get('/check-account/:telegramId', async (req, res) => {
     const hashedTelegramId = hashValue(req.params.telegramId);
 
     try {
-        console.log('Checking account for telegramId:', req.params.telegramId, 'Hashed:', hashedTelegramId);
         const user = await UserModel.findOne({ telegramId: hashedTelegramId });
 
         if (user) {
@@ -28,7 +27,6 @@ router.post('/create-account', async (req, res) => {
     const { username } = req.body;
 
     try {
-        console.log('Creating account for telegramId:', req.body.telegramId, 'Hashed:', hashedTelegramId);
         const existing = await UserModel.findOne({ telegramId: hashedTelegramId });
 
         if (existing) {
@@ -63,7 +61,6 @@ router.patch('/update-account/:telegramId', async (req, res) => {
     const { username, savedList, assets, ton, usd } = req.body;
 
     try {
-        console.log('Updating account for telegramId:', req.params.telegramId, 'Hashed:', hashedTelegramId);
         const user = await UserModel.findOne({ telegramId: hashedTelegramId });
 
         if (!user) {
