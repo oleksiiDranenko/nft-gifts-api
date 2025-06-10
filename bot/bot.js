@@ -66,7 +66,7 @@ const browserFactory = {
         "--disable-renderer-backgrounding",
       ],
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      protocolTimeout: 60000,
+      protocolTimeout: 120000, // Increased to 2 minutes to prevent timeout errors
     });
   },
 
@@ -120,40 +120,47 @@ const processGiftTemplate = async (giftName, browser, fetchStrategy, processData
     console.log(`Navigation complete for ${giftName}`);
 
     const filter = fetchStrategy(giftName);
-    const response = await retryHandler(() =>
-      page.evaluate(
-        async (name, filter) => {
-          const response = await fetch("https://gifts2.tonnel.network/api/pageGifts", {
-            method: "POST",
-            headers: {
-              Accept: "*/*",
-              "Content-Type": "application/json",
-              Origin: "https://market.tonnel.network",
-              Referer: "https://market.tonnel.network/",
-            },
-            body: JSON.stringify({
-              page: 1,
-              limit: 30,
-              sort: '{"price":1,"gift_id":-1}',
-              filter,
-              ref: 0,
-              price_range: null,
-              user_auth: "",
-            }),
-          });
-          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-          return response.json();
-        },
-        giftName,
-        filter
-      )
+    const response = await retryHandler(
+      () =>
+        page.evaluate(
+          async (name, filter) => {
+            const response = await fetch("https://gifts2.tonnel.network/api/pageGifts", {
+              method: "POST",
+              headers: {
+                Accept: "*/*",
+                "Content-Type": "application/json",
+                Origin: "https://market.tonnel.network",
+                Referer: "https://market.tonnel.network/",
+              },
+              body: JSON.stringify({
+                page: 1,
+                limit: 30,
+                sort: '{"price":1,"gift_id":-1}',
+                filter,
+                ref: 0,
+                price_range: null,
+                user_auth: "",
+              }),
+            });
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.json();
+          },
+          giftName,
+          filter
+        ),
+      3,
+      15000
     );
     const giftData = processData(response, giftName);
     await saveData(giftData);
     console.log(`Processed gift: ${giftName}`);
     return true;
   } catch (error) {
-    console.error(`Error processing gift ${giftName}: ${error.message}`);
+    console.error(`Error processing gift ${giftName}: ${error.message}`, {
+      stack: error.stack,
+      giftName,
+      timestamp: new Date().toISOString(),
+    });
     return false;
   } finally {
     if (page) {
@@ -184,7 +191,7 @@ const dataScraperFacade = () => {
 
   const processData = (response, giftName) => {
     const gift = response[0];
-    if (!gift?.price) throw new Error(`Invalid response data for gift ${giftName}`);
+    if (!gift?.price) throw new Error(`Invalid response data for ${giftName}`);
     const { date, time } = getDate("Europe/London");
     const priceTon = parseFloat((gift.price * 1.1).toFixed(4));
     const priceUsd = tonPrice ? parseFloat((priceTon * tonPrice).toFixed(4)) : null;
