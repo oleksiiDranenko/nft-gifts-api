@@ -66,7 +66,7 @@ const browserFactory = {
         "--disable-renderer-backgrounding",
       ],
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      protocolTimeout: 120000, // Increased to 2 minutes to prevent timeout errors
+      protocolTimeout: 60000,
     });
   },
 
@@ -120,47 +120,40 @@ const processGiftTemplate = async (giftName, browser, fetchStrategy, processData
     console.log(`Navigation complete for ${giftName}`);
 
     const filter = fetchStrategy(giftName);
-    const response = await retryHandler(
-      () =>
-        page.evaluate(
-          async (name, filter) => {
-            const response = await fetch("https://gifts2.tonnel.network/api/pageGifts", {
-              method: "POST",
-              headers: {
-                Accept: "*/*",
-                "Content-Type": "application/json",
-                Origin: "https://market.tonnel.network",
-                Referer: "https://market.tonnel.network/",
-              },
-              body: JSON.stringify({
-                page: 1,
-                limit: 30,
-                sort: '{"price":1,"gift_id":-1}',
-                filter,
-                ref: 0,
-                price_range: null,
-                user_auth: "",
-              }),
-            });
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            return response.json();
-          },
-          giftName,
-          filter
-        ),
-      3,
-      15000
+    const response = await retryHandler(() =>
+      page.evaluate(
+        async (name, filter) => {
+          const response = await fetch("https://gifts2.tonnel.network/api/pageGifts", {
+            method: "POST",
+            headers: {
+              Accept: "*/*",
+              "Content-Type": "application/json",
+              Origin: "https://market.tonnel.network",
+              Referer: "https://market.tonnel.network/",
+            },
+            body: JSON.stringify({
+              page: 1,
+              limit: 30,
+              sort: '{"price":1,"gift_id":-1}',
+              filter,
+              ref: 0,
+              price_range: null,
+              user_auth: "",
+            }),
+          });
+          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+          return response.json();
+        },
+        giftName,
+        filter
+      )
     );
     const giftData = processData(response, giftName);
     await saveData(giftData);
     console.log(`Processed gift: ${giftName}`);
     return true;
   } catch (error) {
-    console.error(`Error processing gift ${giftName}: ${error.message}`, {
-      stack: error.stack,
-      giftName,
-      timestamp: new Date().toISOString(),
-    });
+    console.error(`Error processing gift ${giftName}: ${error.message}`);
     return false;
   } finally {
     if (page) {
@@ -191,7 +184,7 @@ const dataScraperFacade = () => {
 
   const processData = (response, giftName) => {
     const gift = response[0];
-    if (!gift?.price) throw new Error(`Invalid response data for ${giftName}`);
+    if (!gift?.price) throw new Error(`Invalid response data for gift ${giftName}`);
     const { date, time } = getDate("Europe/London");
     const priceTon = parseFloat((gift.price * 1.1).toFixed(4));
     const priceUsd = tonPrice ? parseFloat((priceTon * tonPrice).toFixed(4)) : null;
@@ -244,31 +237,16 @@ const dataScraperFacade = () => {
 
         browser = await browserFactory.createBrowser();
         let processed = 0;
-
-        // Process gifts in batches of 3
-        for (let i = 0; i < gifts.length; i += 3) {
-          const batch = gifts.slice(i, i + 3); // Take up to 3 gifts at a time
-          console.log(`Processing batch ${Math.floor(i / 3) + 1}: ${batch.join(", ")}`);
-
-          // Process the batch concurrently using Promise.all
-          const batchPromises = batch.map(async (gift) => {
-            console.log(`Processing gift ${++processed}/${gifts.length}: ${gift}`);
-            const isPreSale = await GiftModel.findOne({ name: gift }).select("preSale").then((g) => g?.preSale || false);
-            const fetchStrategy = isPreSale ? giftFetchStrategies.preSaleFetch : giftFetchStrategies.nonPreSaleFetch;
-            const success = await processGiftTemplate(gift, browser, fetchStrategy, processData, async (data) => {
-              console.log(`Adding week data for ${gift}`);
-              await addWeekData(data);
-              console.log(`Week data added for ${gift}`);
-            });
-            if (!success) console.log(`Failed to process gift: ${gift}`);
-            return success;
+        for (const gift of gifts) {
+          console.log(`Processing gift ${++processed}/${gifts.length}: ${gift}`);
+          const isPreSale = await GiftModel.findOne({ name: gift }).select("preSale").then((g) => g?.preSale || false);
+          const fetchStrategy = isPreSale ? giftFetchStrategies.preSaleFetch : giftFetchStrategies.nonPreSaleFetch;
+          const success = await processGiftTemplate(gift, browser, fetchStrategy, processData, async (data) => {
+            console.log(`Adding week data for ${gift}`);
+            await addWeekData(data);
+            console.log(`Week data added for ${gift}`);
           });
-
-          // Wait for the batch to complete before starting the next
-          await Promise.all(batchPromises);
-          console.log(`Batch ${Math.floor(i / 3) + 1} completed`);
-
-          // Delay between batches to avoid overwhelming the server
+          if (!success) console.log(`Failed to process gift: ${gift}`);
           await delay(10000);
           logMemoryUsage();
         }
