@@ -50,7 +50,7 @@ app.get('/update-data', async (req, res) => {
     }
 });
 
-cron.schedule('0 * * * *', async () => {
+cron.schedule('0,30 * * * *', async () => {
     console.log('Cron job triggered at:', new Date().toISOString());
     try {
         await addData();

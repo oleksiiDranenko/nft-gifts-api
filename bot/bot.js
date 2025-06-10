@@ -237,16 +237,31 @@ const dataScraperFacade = () => {
 
         browser = await browserFactory.createBrowser();
         let processed = 0;
-        for (const gift of gifts) {
-          console.log(`Processing gift ${++processed}/${gifts.length}: ${gift}`);
-          const isPreSale = await GiftModel.findOne({ name: gift }).select("preSale").then((g) => g?.preSale || false);
-          const fetchStrategy = isPreSale ? giftFetchStrategies.preSaleFetch : giftFetchStrategies.nonPreSaleFetch;
-          const success = await processGiftTemplate(gift, browser, fetchStrategy, processData, async (data) => {
-            console.log(`Adding week data for ${gift}`);
-            await addWeekData(data);
-            console.log(`Week data added for ${gift}`);
+
+        // Process gifts in batches of 3
+        for (let i = 0; i < gifts.length; i += 3) {
+          const batch = gifts.slice(i, i + 3); // Take up to 3 gifts at a time
+          console.log(`Processing batch ${Math.floor(i / 3) + 1}: ${batch.join(", ")}`);
+
+          // Process the batch concurrently using Promise.all
+          const batchPromises = batch.map(async (gift) => {
+            console.log(`Processing gift ${++processed}/${gifts.length}: ${gift}`);
+            const isPreSale = await GiftModel.findOne({ name: gift }).select("preSale").then((g) => g?.preSale || false);
+            const fetchStrategy = isPreSale ? giftFetchStrategies.preSaleFetch : giftFetchStrategies.nonPreSaleFetch;
+            const success = await processGiftTemplate(gift, browser, fetchStrategy, processData, async (data) => {
+              console.log(`Adding week data for ${gift}`);
+              await addWeekData(data);
+              console.log(`Week data added for ${gift}`);
+            });
+            if (!success) console.log(`Failed to process gift: ${gift}`);
+            return success;
           });
-          if (!success) console.log(`Failed to process gift: ${gift}`);
+
+          // Wait for the batch to complete before starting the next
+          await Promise.all(batchPromises);
+          console.log(`Batch ${Math.floor(i / 3) + 1} completed`);
+
+          // Delay between batches to avoid overwhelming the server
           await delay(10000);
           logMemoryUsage();
         }
