@@ -1,7 +1,7 @@
 import express from 'express';
 import { GiftModel } from '../models/Gift.js';
 import { WeekChartModel } from '../models/WeekChart.js';
-import { LifeChartModel } from '../models/LifeChart.js'
+import { getUpgradedSupply } from '../utils/getUpgradedSupply.js';
 
 const router = express.Router();
 
@@ -99,38 +99,50 @@ router.get('/', async (req, res) => {
       }
     ]);
 
-    res.json(finalGiftsList);
+    // Add upgradedSupply to each gift
+    const finalGiftsWithUpgradedSupply = await Promise.all(
+      finalGiftsList.map(async (gift) => {
+        const upgradedSupply = await getUpgradedSupply(gift.name);
+        return { ...gift, upgradedSupply };
+      })
+    );
+
+    res.json(finalGiftsWithUpgradedSupply);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
 router.get('/:giftId', async (req, res) => {
-    const { giftId } = req.params;
-    
-    try {
+  const { giftId } = req.params;
 
-        const gift = await GiftModel.findById(giftId)
+  try {
+    const gift = await GiftModel.findById(giftId);
 
-        const currentPrice = await WeekChartModel.find({ name: gift.name })
-            .sort({ createdAt: -1 })
-            .limit(1)
-            .lean();
-        
-        const finalGift = {
-            ...gift.toObject(),
-                priceTon: currentPrice.length ?  currentPrice[0].priceTon : null,
-                priceUsd: currentPrice.length ?  currentPrice[0].priceUsd : null
-        }
-
-        res.json(finalGift)
-        
-    } catch (error) {
-        res.json({
-            message: error
-        })
+    if (!gift) {
+      return res.status(404).json({ message: 'Gift not found' });
     }
-})
+
+    const currentPrice = await WeekChartModel.find({ name: gift.name })
+      .sort({ createdAt: -1 })
+      .limit(1)
+      .lean();
+
+    const upgradedSupply = await getUpgradedSupply(gift.name);
+
+    const finalGift = {
+      ...gift.toObject(),
+      priceTon: currentPrice.length ? currentPrice[0].priceTon : null,
+      priceUsd: currentPrice.length ? currentPrice[0].priceUsd : null,
+      upgradedSupply
+    };
+
+    res.json(finalGift);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 export const getNames = async () => {
     try {
