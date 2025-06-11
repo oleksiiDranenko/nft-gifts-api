@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
           pipeline: [
             { $match: { $expr: { $eq: ['$name', '$$giftName'] } } },
             { $sort: { createdAt: -1 } },
-            { $skip: 23 }, // Skip 23 records to get ~24 hours ago
+            { $skip: 47 }, // Skip 23 records to get ~24 hours ago
             { $limit: 1 },
             { $project: { priceTon: 1, priceUsd: 1 } }
           ],
