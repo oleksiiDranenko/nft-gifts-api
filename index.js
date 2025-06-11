@@ -61,7 +61,6 @@ cron.schedule('0,30 * * * *', async () => {
 });
 
 
-
 const startServer = async () => {
     try {
         await mongoose.connect(dbConnectionString, {
@@ -70,8 +69,8 @@ const startServer = async () => {
         });
         console.log('Successfully connected to MongoDB');
 
-        // ✅ Migrate telegram IDs after DB connects
-        await migrateTelegramIds();
+        // // ✅ Migrate telegram IDs after DB connects
+        // await migrateTelegramIds();
 
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);
