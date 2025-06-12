@@ -1,11 +1,13 @@
-import puppeteer from "puppeteer";
-import randomUseragent from "random-useragent";
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { getDate, getTonPrice } from "./functions.js";
 import { addWeekData } from "../routes/weekData.js";
 import { addLifeData } from "../routes/lifeData.js";
 import { getNames } from "../routes/gifts.js";
 import { addIndexData } from "../routes/indexData.js";
 import { GiftModel } from "../models/Gift.js";
+
+puppeteer.use(StealthPlugin());
 
 const ONE_HOUR = 60 * 60 * 1000;
 
@@ -30,19 +32,23 @@ const logMemoryUsage = () => {
 
 // Retry Pattern: Generic retry handler
 const retryHandler = async (operation, retries = 3, backoff = 15000) => {
+  console.log(`Attempting operation, ${retries} retries left`);
   try {
     return await operation();
   } catch (error) {
+    console.error(`Operation failed: ${error.message}`);
     if (
       (error.name === "TimeoutError" ||
         error.message.includes("429") ||
-        error.message.includes("502")) &&
+        error.message.includes("502") ||
+        error.message.includes("Failed to fetch") ||
+        error.message.includes("Protocol error")) &&
       retries > 0
     ) {
       const cappedBackoff = Math.min(backoff, 60000);
       console.log(`Retrying in ${cappedBackoff / 1000}s... (${retries} retries left)`);
       await delay(cappedBackoff);
-      return retryHandler(operation, retries - 1, cappedBackoff * 2);
+      return retryHandler(operation, retries - 1, cappedBackoff * 1.5);
     }
     throw error;
   }
@@ -57,38 +63,42 @@ const browserFactory = {
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--single-process",
-        "--no-zygote",
-        "--disable-background-networking",
-        "--disable-background-timer-throttling",
-        "--disable-backgrounding-occluded-windows",
-        "--disable-renderer-backgrounding",
       ],
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      protocolTimeout: 120000, // Increased to 2 minutes to prevent timeout errors
+      protocolTimeout: 60000,
     });
   },
 
   createPage: async (browser, giftName) => {
     const page = await browser.newPage();
     try {
-      const userAgent = randomUseragent.getRandom();
-      await page.setUserAgent(userAgent);
+      const userAgent =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36";
+      await retryHandler(async () => {
+        try {
+          await page.setUserAgent(userAgent);
+        } catch (error) {
+          throw new Error(`Failed to set user agent: ${error.message}`);
+        }
+      });
       console.log(`Set User-Agent for ${giftName}: ${userAgent}`);
 
       await page.setRequestInterception(true);
       page.on("request", (request) => {
-        request.continue({
-          headers: {
-            ...request.headers(),
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            Accept: "*/*",
-            "Content-Type": "application/json",
-            Origin: "https://market.tonnel.network",
-            Referer: "https://market.tonnel.network/",
-          },
-        });
+        if (["image", "stylesheet", "font"].includes(request.resourceType())) {
+          request.abort();
+        } else {
+          request.continue({
+            headers: {
+              ...request.headers(),
+              "User-Agent": userAgent,
+              Accept: "application/json, text/plain, */*",
+              "Content-Type": "application/json",
+              Origin: "https://market.tonnel.network",
+              Referer: "https://market.tonnel.network/",
+            },
+          });
+        }
       });
       return page;
     } catch (error) {
@@ -98,7 +108,7 @@ const browserFactory = {
   },
 };
 
-// Strategy Pattern: Gift fetching strategies
+// Strategy Pattern: Gift fetching strategies (preserved as original)
 const giftFetchStrategies = {
   preSaleFetch: (giftName) =>
     `{"price":{"$exists":true},"buyer":{"$exists":false},"gift_name":"${giftName}","asset":"TON"}`,
@@ -113,41 +123,58 @@ const processGiftTemplate = async (giftName, browser, fetchStrategy, processData
     console.log(`Processing gift: ${giftName}`);
     page = await browserFactory.createPage(browser, giftName);
     console.log(`Navigating to market for ${giftName}`);
-    await page.goto("https://market.tonnel.network", {
-      waitUntil: "domcontentloaded",
-      timeout: 60000,
+    await retryHandler(async () => {
+      await page.goto("https://market.tonnel.network", {
+        waitUntil: "networkidle2",
+        timeout: 30000,
+      });
     });
     console.log(`Navigation complete for ${giftName}`);
 
     const filter = fetchStrategy(giftName);
     const response = await retryHandler(
-      () =>
-        page.evaluate(
-          async (name, filter) => {
-            const response = await fetch("https://gifts2.tonnel.network/api/pageGifts", {
-              method: "POST",
-              headers: {
-                Accept: "*/*",
-                "Content-Type": "application/json",
-                Origin: "https://market.tonnel.network",
-                Referer: "https://market.tonnel.network/",
-              },
-              body: JSON.stringify({
-                page: 1,
-                limit: 30,
-                sort: '{"price":1,"gift_id":-1}',
-                filter,
-                ref: 0,
-                price_range: null,
-                user_auth: "",
-              }),
-            });
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            return response.json();
-          },
-          giftName,
-          filter
-        ),
+      async () => {
+        try {
+          const result = await page.evaluate(
+            async (name, filter, userAgent) => {
+              try {
+                const response = await fetch("https://gifts2.tonnel.network/api/pageGifts", {
+                  method: "POST",
+                  headers: {
+                    Accept: "application/json, text/plain, */*",
+                    "Content-Type": "application/json",
+                    "User-Agent": userAgent,
+                    Origin: "https://market.tonnel.network",
+                    Referer: "https://market.tonnel.network/",
+                  },
+                  body: JSON.stringify({
+                    page: 1,
+                    limit: 30,
+                    sort: '{"price":1,"gift_id":-1}', // Updated to match provided payload
+                    filter,
+                    ref: 0,
+                    price_range: null,
+                    user_auth: "",
+                  }),
+                });
+                if (!response.ok) {
+                  const text = await response.text();
+                  throw new Error(`HTTP error! Status: ${response.status}, Body: ${text}`);
+                }
+                return response.json();
+              } catch (err) {
+                throw new Error(`Fetch failed: ${err.message}`);
+              }
+            },
+            giftName,
+            filter,
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
+          );
+          return result;
+        } catch (err) {
+          throw new Error(`Evaluate failed: ${err.message}`);
+        }
+      },
       3,
       15000
     );
@@ -247,10 +274,9 @@ const dataScraperFacade = () => {
 
         // Process gifts in batches of 3
         for (let i = 0; i < gifts.length; i += 3) {
-          const batch = gifts.slice(i, i + 3); // Take up to 3 gifts at a time
+          const batch = gifts.slice(i, i + 3);
           console.log(`Processing batch ${Math.floor(i / 3) + 1}: ${batch.join(", ")}`);
 
-          // Process the batch concurrently using Promise.all
           const batchPromises = batch.map(async (gift) => {
             console.log(`Processing gift ${++processed}/${gifts.length}: ${gift}`);
             const isPreSale = await GiftModel.findOne({ name: gift }).select("preSale").then((g) => g?.preSale || false);
@@ -264,11 +290,9 @@ const dataScraperFacade = () => {
             return success;
           });
 
-          // Wait for the batch to complete before starting the next
           await Promise.all(batchPromises);
           console.log(`Batch ${Math.floor(i / 3) + 1} completed`);
 
-          // Delay between batches to avoid overwhelming the server
           await delay(10000);
           logMemoryUsage();
         }
