@@ -293,7 +293,7 @@ const dataScraperFacade = () => {
           await Promise.all(batchPromises);
           console.log(`Batch ${Math.floor(i / 3) + 1} completed`);
 
-          await delay(10000);
+          await delay(15000);
           logMemoryUsage();
         }
 
