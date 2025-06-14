@@ -103,7 +103,7 @@ class TelegramMessageFormatter {
       let emoji = '🟢';
 
       if (gift.priceTon && gift.tonPrice24hAgo && gift.tonPrice24hAgo !== 0) {
-        const change = ((gift.priceTon - a.tonPrice24hAgo) / a.tonPrice24hAgo) * 100;
+        const change = ((gift.priceTon - gift.tonPrice24hAgo) / gift.tonPrice24hAgo) * 100;
         percentageChange = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
         emoji = change >= 0 ? '🟢' : '🔴';
       }
@@ -133,8 +133,8 @@ class BotService {
     if (!botToken) {
       throw new Error('Bot token must be provided');
     }
-    if (!botToken.startsWith('bot') || botToken.split(':').length !== 2) {
-      throw new Error('Invalid Telegram bot token format');
+    if (botToken.split(':').length !== 2) {
+      throw new Error('Invalid Telegram bot token format: must contain a colon');
     }
     this.#bot = new Telegraf(botToken);
     this.#giftDataProvider = new MongoGiftDataProvider();
@@ -250,8 +250,8 @@ export const initializeBot = async (botToken) => {
   if (!botToken) {
     throw new Error('Bot token must be provided');
   }
-  if (!botToken.startsWith('bot') || botToken.split(':').length !== 2) {
-    throw new Error('Invalid Telegram bot token format');
+  if (botToken.split(':').length !== 2) {
+    throw new Error('Invalid Telegram bot token format: must contain a colon');
   }
   const botService = new BotService(botToken);
   await botService.initialize();
