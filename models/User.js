@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const AssetSchema = new mongoose.Schema({
     giftId: { type: String, required: true },
-    amount: { type: Number, required: true }
+    amount: { type: Number, required: true },
+    avgPrice: { type: Number, required: true }
 })
 
 const UserSchema = new mongoose.Schema({
