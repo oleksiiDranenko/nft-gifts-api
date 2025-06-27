@@ -149,8 +149,8 @@ const processGiftTemplate = async (giftName, browser, fetchStrategy, processData
                   },
                   body: JSON.stringify({
                     page: 1,
-                    limit: 30,
-                    sort: '{"price":1,"gift_id":-1}', // Updated to match provided payload
+                    limit: 1,
+                    sort: '{"price":1,"gift_id":-1}',
                     filter,
                     ref: 0,
                     price_range: null,
@@ -220,7 +220,7 @@ const dataScraperFacade = () => {
     const gift = response[0];
     if (!gift?.price) throw new Error(`Invalid response data for ${giftName}`);
     const { date, time } = getDate("Europe/London");
-    const priceTon = parseFloat((gift.price * 1.1).toFixed(4));
+    const priceTon = parseFloat((gift.price * 1.04).toFixed(4));
     const priceUsd = tonPrice ? parseFloat((priceTon * tonPrice).toFixed(4)) : null;
     return { name: gift.name, priceTon, priceUsd, date, time };
   };
