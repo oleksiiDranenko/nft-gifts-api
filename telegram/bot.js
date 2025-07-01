@@ -34,7 +34,7 @@ class MongoGiftDataProvider extends GiftDataProvider {
       const [last24hData, currentPriceData] = await Promise.all([
         this.#WeekChartModel.find({ name: giftName })
           .sort({ createdAt: -1 })
-          .skip(23)
+          .skip(47)
           .limit(1)
           .lean(),
         this.#WeekChartModel.find({ name: giftName })
