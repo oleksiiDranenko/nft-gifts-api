@@ -220,7 +220,7 @@ const dataScraperFacade = () => {
     const gift = response[0];
     if (!gift?.price) throw new Error(`Invalid response data for ${giftName}`);
     const { date, time } = getDate("Europe/London");
-    const priceTon = parseFloat((gift.price * 1.04).toFixed(4));
+    const priceTon = parseFloat((gift.price * 1.06).toFixed(4));
     const priceUsd = tonPrice ? parseFloat((priceTon * tonPrice).toFixed(4)) : null;
     return { name: gift.name, priceTon, priceUsd, date, time };
   };
