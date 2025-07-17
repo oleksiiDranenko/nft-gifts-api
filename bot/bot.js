@@ -257,11 +257,7 @@ const dataScraperFacade = () => {
       let browser;
       try {
         logMemoryUsage();
-        if (!lastTonFetchTime || Date.now() - lastTonFetchTime > ONE_HOUR) {
-          await fetchTonPrice();
-        } else {
-          console.log(`Using cached TON price: ${tonPrice}`);
-        }
+        await fetchTonPrice();
 
         const gifts = await getNames().catch((error) => {
           console.error(`Failed to fetch gift names: ${error.message}`);

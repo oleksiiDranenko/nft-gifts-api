@@ -38,17 +38,17 @@ const port = process.env.PORT || 3001;
 
 process.env.TZ = 'Europe/London';
 
-app.get('/update-data', async (req, res) => {
-    console.log('Data update requested at:', new Date().toISOString());
-    try {
-        await addData();
-        console.log('Data update succeeded');
-        res.status(200).json({ message: 'Data update completed' });
-    } catch (error) {
-        console.error('Error in /update-data:', error.stack);
-        res.status(500).json({ message: 'Data update failed', error: error.message, stack: error.stack });
-    }
-});
+// app.get('/update-data', async (req, res) => {
+//     console.log('Data update requested at:', new Date().toISOString());
+//     try {
+//         await addData();
+//         console.log('Data update succeeded');
+//         res.status(200).json({ message: 'Data update completed' });
+//     } catch (error) {
+//         console.error('Error in /update-data:', error.stack);
+//         res.status(500).json({ message: 'Data update failed', error: error.message, stack: error.stack });
+//     }
+// });
 
 cron.schedule('0 0,30 * * * *', async () => {
     console.log('Cron job triggered at:', new Date().toISOString());
