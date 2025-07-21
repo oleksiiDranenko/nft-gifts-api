@@ -23,13 +23,6 @@ const delay = (ms) => {
   });
 };
 
-const logMemoryUsage = () => {
-  const used = process.memoryUsage();
-  console.log("Memory Usage:");
-  for (let key in used) {
-    console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
-  }
-};
 
 const retryHandler = async (operation, retries = 3, backoff = 15000) => {
   console.log(`Attempting operation, ${retries} retries left`);
@@ -263,7 +256,6 @@ export const addData = async () => {
   let currentDate = getDate().date;
 
   try {
-    logMemoryUsage();
     tonPrice = await fetchTonPrice(lastTonFetchTime, tonPrice);
     lastTonFetchTime = Date.now();
 
@@ -300,7 +292,6 @@ export const addData = async () => {
 
     await Promise.all(nonPreSalePromises);
     console.log("Completed processing non-pre-sale gifts");
-    logMemoryUsage();
 
     // Process pre-sale gifts
     console.log("Processing pre-sale gifts");
@@ -327,20 +318,17 @@ export const addData = async () => {
       await Promise.all(batchPromises);
       console.log(`Pre-sale batch ${Math.floor(i / 3) + 1} completed`);
       await delay(15000);
-      logMemoryUsage();
     }
 
     currentDate = await updateDailyData(currentDate);
     console.log(`Data update completed at: ${new Date().toLocaleTimeString()}`);
   } catch (error) {
     console.error(`Unexpected error in addData: ${error.message}`);
-    logMemoryUsage();
     throw error;
   } finally {
     if (browser) {
       console.log("Closing browser");
       await browser.close();
     }
-    logMemoryUsage();
   }
 };

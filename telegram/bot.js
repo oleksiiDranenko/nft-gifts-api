@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { Telegraf, Markup } from 'telegraf';
+import express from 'express';
 import { GiftModel } from '../models/Gift.js';
 import { WeekChartModel } from '../models/WeekChart.js';
 
@@ -46,7 +47,7 @@ const getGiftsList = async () => {
 
 // Sanitize HTML characters
 const sanitizeHtml = (text) =>
-  text.replace(/[<>&]/g, (char) => ({ '<': '<', '>': '>', '&': '&' }[char]));
+  text.replace(/[<>&]/g, (char) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[char]));
 
 // Format gifts message for Telegram
 const formatGiftsMessage = (gifts) => {
@@ -97,12 +98,15 @@ export const initializeBot = async (botToken) => {
 
   const bot = new Telegraf(botToken);
 
-  // Clear webhook and use polling
+  // Set webhook
+  const webhookUrl = `https://${process.env.RENDER_EXTERNAL_HOSTNAME}/bot`;
   try {
-    await bot.telegram.deleteWebhook();
-    console.log('Webhook removed, using polling');
+    await bot.telegram.deleteWebhook(); // Clear any existing webhook
+    await bot.telegram.setWebhook(webhookUrl);
+    console.log(`Webhook set to ${webhookUrl}`);
   } catch (err) {
-    console.error('Error removing webhook:', err);
+    console.error('Error setting webhook:', err);
+    throw err;
   }
 
   // Register commands
@@ -175,24 +179,43 @@ export const initializeBot = async (botToken) => {
     }
   });
 
-  // Start the bot
-  try {
-    await bot.launch();
-    console.log('Telegram bot started');
-  } catch (err) {
-    console.error('Error starting Telegram bot:', err);
-    throw err;
-  }
-
-  // Handle graceful shutdown
-  process.once('SIGINT', () => {
-    console.log('Stopping bot due to SIGINT');
-    bot.stop('SIGINT');
-  });
-  process.once('SIGTERM', () => {
-    console.log('Stopping bot due to SIGTERM');
-    bot.stop('SIGTERM');
-  });
-
   return bot;
 };
+
+// Set up Express server
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(express.json());
+
+// Initialize bot and set up webhook route
+(async () => {
+  try {
+    const bot = await initializeBot(process.env.BOT_TOKEN);
+    app.post('/bot', bot.webhookCallback('/bot'));
+    console.log('Webhook route configured');
+  } catch (err) {
+    console.error('Failed to initialize bot:', err);
+    process.exit(1);
+  }
+})();
+
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+
+// Handle graceful shutdown
+process.once('SIGINT', () => {
+  console.log('Stopping server due to SIGINT');
+  process.exit(0);
+});
+process.once('SIGTERM', () => {
+  console.log('Stopping server due to SIGTERM');
+  process.exit(0);
+});
