@@ -11,7 +11,7 @@ import { UserRouter } from './routes/users.js';
 import { SubscriptionRouter } from './routes/subscription.js';
 import { IndexRouter } from './routes/index.js';
 import { IndexDataRouter } from './routes/indexData.js';
-import { addData } from './bot/bot.js';
+import { addData, } from './bot/bot.js';
 import { migrateTelegramIds } from './utils/migrateUsers.js';
 
 process.removeAllListeners('warning');

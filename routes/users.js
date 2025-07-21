@@ -67,7 +67,6 @@ router.patch('/update-account/:telegramId', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Update user fields
         user.username = username || user.username;
         user.savedList = savedList || user.savedList;
         user.assets = assets || user.assets;
@@ -76,7 +75,6 @@ router.patch('/update-account/:telegramId', async (req, res) => {
 
         await user.save();
 
-        // Convert Mongoose document to plain object and include unhashed telegramId
         const userObj = user.toObject();
         return res.status(200).json({ 
             message: 'User updated successfully', 
