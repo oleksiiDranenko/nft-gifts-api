@@ -20,7 +20,6 @@ const app = express();
 
 dotenv.config();
 
-initializeBot(process.env.TELEGRAM_BOT_TOKEN);
 
 app.use(cors());
 app.use(express.json());
@@ -32,6 +31,21 @@ app.use('/users', UserRouter);
 app.use('/subscriptions', SubscriptionRouter);
 app.use('/indexes', IndexRouter);
 app.use('/indexData', IndexDataRouter);
+
+(async () => {
+  try {
+    if (!process.env.TELEGRAM_BOT_TOKEN) {
+      console.error('Error: TELEGRAM_BOT_TOKEN environment variable is not set');
+      process.exit(1);
+    }
+    const bot = await initializeBot(process.env.TELEGRAM_BOT_TOKEN);
+    app.post('/bot', bot.webhookCallback('/bot'));
+    console.log('Webhook route configured for Telegram bot');
+  } catch (err) {
+    console.error('Failed to initialize Telegram bot:', err);
+    process.exit(1);
+  }
+})();
 
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
 const port = process.env.PORT || 3001;

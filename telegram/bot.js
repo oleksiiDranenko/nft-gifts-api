@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { Telegraf, Markup } from 'telegraf';
-import express from 'express';
 import { GiftModel } from '../models/Gift.js';
 import { WeekChartModel } from '../models/WeekChart.js';
 
@@ -91,7 +90,9 @@ const formatGiftsMessage = (gifts) => {
 
 // Initialize Telegram bot
 export const initializeBot = async (botToken) => {
-  if (!botToken) throw new Error('Bot token must be provided');
+  if (!botToken) {
+    throw new Error('Bot token must be provided. Ensure TELEGRAM_BOT_TOKEN is set in environment variables.');
+  }
   if (botToken.split(':').length !== 2) {
     throw new Error('Invalid Telegram bot token format: must contain a colon');
   }
@@ -101,7 +102,7 @@ export const initializeBot = async (botToken) => {
   // Set webhook
   const webhookUrl = `https://${process.env.RENDER_EXTERNAL_HOSTNAME}/bot`;
   try {
-    await bot.telegram.deleteWebhook(); // Clear any existing webhook
+    await bot.telegram.deleteWebhook({ drop_pending_updates: true }); // Clear any existing webhook
     await bot.telegram.setWebhook(webhookUrl);
     console.log(`Webhook set to ${webhookUrl}`);
   } catch (err) {
@@ -181,41 +182,3 @@ export const initializeBot = async (botToken) => {
 
   return bot;
 };
-
-// Set up Express server
-const app = express();
-const port = process.env.PORT || 3000;
-
-app.use(express.json());
-
-// Initialize bot and set up webhook route
-(async () => {
-  try {
-    const bot = await initializeBot(process.env.BOT_TOKEN);
-    app.post('/bot', bot.webhookCallback('/bot'));
-    console.log('Webhook route configured');
-  } catch (err) {
-    console.error('Failed to initialize bot:', err);
-    process.exit(1);
-  }
-})();
-
-// Health check endpoint for Render
-app.get('/health', (req, res) => {
-  res.status(200).send('OK');
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
-
-// Handle graceful shutdown
-process.once('SIGINT', () => {
-  console.log('Stopping server due to SIGINT');
-  process.exit(0);
-});
-process.once('SIGTERM', () => {
-  console.log('Stopping server due to SIGTERM');
-  process.exit(0);
-});
