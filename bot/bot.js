@@ -9,7 +9,6 @@ import { GiftModel } from "../models/Gift.js";
 
 puppeteer.use(StealthPlugin());
 
-const ONE_HOUR = 60 * 60 * 1000;
 const MICRO_TON = 1_000_000_000;
 
 const delay = (ms) => {
@@ -185,11 +184,7 @@ const fetchPreSaleGift = async (giftName, browser, tonPrice) => {
   }
 };
 
-const fetchTonPrice = async (lastTonFetchTime, tonPrice) => {
-  if (lastTonFetchTime && Date.now() - lastTonFetchTime < ONE_HOUR && tonPrice) {
-    console.log(`Using cached TON price: ${tonPrice}`);
-    return tonPrice;
-  }
+const fetchTonPrice = async () => {
   try {
     const price = await retryHandler(() => getTonPrice(), 3, 5000);
     console.log(`Fetched TON price: ${price}`);
@@ -256,7 +251,7 @@ export const addData = async () => {
   let currentDate = getDate().date;
 
   try {
-    tonPrice = await fetchTonPrice(lastTonFetchTime, tonPrice);
+    tonPrice = await fetchTonPrice();
     lastTonFetchTime = Date.now();
 
     // Fetch gift list from API
