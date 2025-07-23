@@ -6,6 +6,7 @@ import { addWeekData } from "../routes/weekData.js";
 import { addLifeData } from "../routes/lifeData.js";
 import { addIndexData } from "../routes/indexData.js";
 import { GiftModel } from "../models/Gift.js";
+import { WeekChartModel } from "../models/WeekChart.js";
 import mongoose from "mongoose";
 
 // Define a Mongoose schema for storing the last processed date
@@ -174,6 +175,15 @@ const fetchPreSaleGift = async (giftName, browser, tonPrice) => {
     const { date, time } = getDate("Europe/London");
     const priceTon = parseFloat((gift.price * 1.06).toFixed(4));
     const priceUsd = tonPrice ? parseFloat((priceTon * tonPrice).toFixed(4)) : null;
+
+    // Check last price in WeekChartModel
+    const lastRecord = await WeekChartModel.findOne({ name: giftName })
+      .sort({ createdAt: -1 })
+      .select("priceTon");
+    if (lastRecord && priceTon < lastRecord.priceTon * 0.4) {
+      console.log(`Price drop too low for ${giftName}: ${priceTon} TON vs last ${lastRecord.priceTon} TON. Using last price.`);
+      return { name: gift.name, priceTon: lastRecord.priceTon, priceUsd: tonPrice ? parseFloat((lastRecord.priceTon * tonPrice).toFixed(4)) : null, date, time };
+    }
     return { name: gift.name, priceTon, priceUsd, date, time };
   } catch (error) {
     console.error(`Error processing pre-sale gift ${giftName}: ${error.message}`, {
@@ -214,10 +224,19 @@ const fetchGiftPrices = async () => {
   }
 };
 
-const processData = (gift, tonPrice) => {
+const processData = async (gift, tonPrice) => {
   const { date, time } = getDate("Europe/London");
   const priceTon = parseFloat((parseInt(gift.stats.floor) / MICRO_TON).toFixed(2));
   const priceUsd = tonPrice ? parseFloat((priceTon * tonPrice).toFixed(4)) : null;
+
+  // Check last price in WeekChartModel
+  const lastRecord = await WeekChartModel.findOne({ name: gift.name })
+    .sort({ createdAt: -1 })
+    .select("priceTon");
+  if (lastRecord && priceTon < lastRecord.priceTon * 0.4) {
+    console.log(`Price drop too low for ${gift.name}: ${priceTon} TON vs last ${lastRecord.priceTon} TON. Using last price.`);
+    return { name: gift.name, priceTon: lastRecord.priceTon, priceUsd: tonPrice ? parseFloat((lastRecord.priceTon * tonPrice).toFixed(4)) : null, date, time };
+  }
   return { name: gift.name, priceTon, priceUsd, date, time };
 };
 
@@ -305,7 +324,7 @@ export const addData = async () => {
           return false;
         }
 
-        const data = processData(gift, tonPrice);
+        const data = await processData(gift, tonPrice);
         console.log(`Adding week data for non-pre-sale ${giftName}`);
         await addWeekData(data);
         console.log(`Week data added for ${giftName}`);
@@ -354,47 +373,5 @@ export const addData = async () => {
       console.log("Closing browser");
       await browser.close();
     }
-  }
-};
-
-export const addDailyDataForDate = async (inputDate) => {
-  // Validate input date format (dd-mm-yyyy)
-  const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
-  if (!dateRegex.test(inputDate)) {
-    throw new Error(`Invalid date format: ${inputDate}. Expected format: dd-mm-yyyy`);
-  }
-
-  // Parse and validate the date
-  const [day, month, year] = inputDate.split("-").map(Number);
-  const parsedDate = new Date(year, month - 1, day);
-  if (
-    isNaN(parsedDate.getTime()) ||
-    parsedDate.getDate() !== day ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getFullYear() !== year
-  ) {
-    throw new Error(`Invalid date: ${inputDate}`);
-  }
-
-  // Format the date to dd-mm-yyyy for consistency
-  const formattedDate = `${String(day).padStart(2, "0")}-${String(month).padStart(2, "0")}-${year}`;
-  console.log(`Processing daily data for manually entered date: ${formattedDate}`);
-
-  try {
-    const giftData = await fetchGiftPrices();
-    const giftsList = giftData.map((gift) => gift.name);
-    const nonPreSaleGifts = await GiftModel.find({ preSale: { $ne: true } }).select("name -_id");
-    const nonPreSaleGiftNames = nonPreSaleGifts.map((gift) => gift.name);
-
-    console.log(`Processing life data for ${giftsList.length} gifts: ${giftsList.join(", ")}`);
-    console.log(`Processing index data for ${nonPreSaleGiftNames.length} non-preSale gifts: ${nonPreSaleGiftNames.join(", ")}`);
-
-    await addLifeData(giftsList, formattedDate);
-    await addIndexData(formattedDate);
-    console.log(`Added daily data for: ${formattedDate}`);
-    return formattedDate;
-  } catch (error) {
-    console.error(`Failed to add daily data for ${formattedDate}: ${error.message}`);
-    throw error;
   }
 };
