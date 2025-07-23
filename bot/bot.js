@@ -6,6 +6,13 @@ import { addWeekData } from "../routes/weekData.js";
 import { addLifeData } from "../routes/lifeData.js";
 import { addIndexData } from "../routes/indexData.js";
 import { GiftModel } from "../models/Gift.js";
+import mongoose from "mongoose";
+
+// Define a Mongoose schema for storing the last processed date
+const LastProcessedDateSchema = new mongoose.Schema({
+  lastProcessedDate: { type: String, required: true },
+});
+const LastProcessedDate = mongoose.model("LastProcessedDate", LastProcessedDateSchema);
 
 puppeteer.use(StealthPlugin());
 
@@ -21,7 +28,6 @@ const delay = (ms) => {
     }, ms);
   });
 };
-
 
 const retryHandler = async (operation, retries = 3, backoff = 15000) => {
   console.log(`Attempting operation, ${retries} retries left`);
@@ -215,15 +221,26 @@ const processData = (gift, tonPrice) => {
   return { name: gift.name, priceTon, priceUsd, date, time };
 };
 
-export const updateDailyData = async (currentDate) => {
-  const { date: updatedDate } = getDate();
-  if (currentDate === updatedDate) return currentDate;
+export const updateDailyData = async (lastProcessedDate) => {
+  const { date: currentDate } = getDate("Europe/London");
+  
+  // Format dates to YYYY-MM-DD for consistent comparison
+  const formatDate = (date) => date.split("-").reverse().join("-");
+  const formattedCurrentDate = formatDate(currentDate);
+  const formattedLastProcessedDate = lastProcessedDate ? formatDate(lastProcessedDate) : null;
 
-  console.log("New day detected!");
+  // Check if it's a new day
+  if (formattedLastProcessedDate === formattedCurrentDate) {
+    console.log(`No new day detected. Last processed: ${lastProcessedDate}, Current: ${currentDate}`);
+    return lastProcessedDate;
+  }
+
+  console.log(`New day detected! Processing data for ${currentDate}`);
   try {
+    // Get the previous day's date
     const previousDate = new Date();
     previousDate.setDate(previousDate.getDate() - 1);
-    const formattedDate = previousDate.toLocaleDateString("en-GB").split("/").join("-");
+    const formattedPreviousDate = previousDate.toLocaleDateString("en-GB").split("/").join("-");
 
     const giftData = await fetchGiftPrices();
     const giftsList = giftData.map((gift) => gift.name);
@@ -233,13 +250,21 @@ export const updateDailyData = async (currentDate) => {
     console.log(`Processing life data for ${giftsList.length} gifts: ${giftsList.join(", ")}`);
     console.log(`Processing index data for ${nonPreSaleGiftNames.length} non-preSale gifts: ${nonPreSaleGiftNames.join(", ")}`);
 
-    await addLifeData(giftsList, formattedDate);
-    await addIndexData(formattedDate);
-    console.log("Added previous day data");
-    return updatedDate;
+    await addLifeData(giftsList, formattedPreviousDate);
+    await addIndexData(formattedPreviousDate);
+    console.log(`Added data for previous day: ${formattedPreviousDate}`);
+
+    // Update lastProcessedDate in the database
+    await LastProcessedDate.findOneAndUpdate(
+      {},
+      { lastProcessedDate: currentDate },
+      { upsert: true, new: true }
+    );
+    console.log(`Updated lastProcessedDate in database to: ${currentDate}`);
+    return currentDate;
   } catch (error) {
     console.error(`Failed to update daily data: ${error.message}`);
-    return currentDate;
+    return lastProcessedDate;
   }
 };
 
@@ -247,8 +272,10 @@ export const addData = async () => {
   console.log(`Data update started at: ${new Date().toLocaleTimeString()}`);
   let browser;
   let tonPrice = null;
-  let lastTonFetchTime = null;
-  let currentDate = getDate().date;
+
+  // Retrieve lastProcessedDate from the database
+  let lastProcessedDateDoc = await LastProcessedDate.findOne();
+  let lastProcessedDate = lastProcessedDateDoc ? lastProcessedDateDoc.lastProcessedDate : getDate("Europe/London").date;
 
   try {
     tonPrice = await fetchTonPrice();
@@ -315,8 +342,10 @@ export const addData = async () => {
       await delay(15000);
     }
 
-    currentDate = await updateDailyData(currentDate);
+    // Update daily data
+    lastProcessedDate = await updateDailyData(lastProcessedDate);
     console.log(`Data update completed at: ${new Date().toLocaleTimeString()}`);
+    return lastProcessedDate;
   } catch (error) {
     console.error(`Unexpected error in addData: ${error.message}`);
     throw error;
@@ -325,5 +354,47 @@ export const addData = async () => {
       console.log("Closing browser");
       await browser.close();
     }
+  }
+};
+
+export const addDailyDataForDate = async (inputDate) => {
+  // Validate input date format (dd-mm-yyyy)
+  const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
+  if (!dateRegex.test(inputDate)) {
+    throw new Error(`Invalid date format: ${inputDate}. Expected format: dd-mm-yyyy`);
+  }
+
+  // Parse and validate the date
+  const [day, month, year] = inputDate.split("-").map(Number);
+  const parsedDate = new Date(year, month - 1, day);
+  if (
+    isNaN(parsedDate.getTime()) ||
+    parsedDate.getDate() !== day ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getFullYear() !== year
+  ) {
+    throw new Error(`Invalid date: ${inputDate}`);
+  }
+
+  // Format the date to dd-mm-yyyy for consistency
+  const formattedDate = `${String(day).padStart(2, "0")}-${String(month).padStart(2, "0")}-${year}`;
+  console.log(`Processing daily data for manually entered date: ${formattedDate}`);
+
+  try {
+    const giftData = await fetchGiftPrices();
+    const giftsList = giftData.map((gift) => gift.name);
+    const nonPreSaleGifts = await GiftModel.find({ preSale: { $ne: true } }).select("name -_id");
+    const nonPreSaleGiftNames = nonPreSaleGifts.map((gift) => gift.name);
+
+    console.log(`Processing life data for ${giftsList.length} gifts: ${giftsList.join(", ")}`);
+    console.log(`Processing index data for ${nonPreSaleGiftNames.length} non-preSale gifts: ${nonPreSaleGiftNames.join(", ")}`);
+
+    await addLifeData(giftsList, formattedDate);
+    await addIndexData(formattedDate);
+    console.log(`Added daily data for: ${formattedDate}`);
+    return formattedDate;
+  } catch (error) {
+    console.error(`Failed to add daily data for ${formattedDate}: ${error.message}`);
+    throw error;
   }
 };
