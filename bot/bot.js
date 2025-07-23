@@ -298,7 +298,6 @@ export const addData = async () => {
 
   try {
     tonPrice = await fetchTonPrice();
-    lastTonFetchTime = Date.now();
 
     // Fetch gift list from API
     const giftData = await fetchGiftPrices();
