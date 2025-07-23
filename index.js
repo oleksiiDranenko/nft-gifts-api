@@ -65,6 +65,11 @@ cron.schedule('0 0,30 * * * *', async () => {
     }
 });
 
+app.get('/add-data', async (req, res) => {
+  await addData();
+  res.json('done')
+})
+
 const startServer = async () => {
   try {
     const dbConnectionString = process.env.DB_CONNECTION_STRING;
