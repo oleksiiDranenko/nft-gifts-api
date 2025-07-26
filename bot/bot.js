@@ -233,20 +233,8 @@ const processData = async (gift, tonPrice) => {
   return { name: gift.name, priceTon, priceUsd, date, time };
 };
 
-export const updateDailyData = async (lastProcessedDate) => {
-  const { date: currentDate } = getDate("Europe/London");
-  
-  // Use dd-mm-yyyy format for consistent comparison
-  const formattedCurrentDate = currentDate; // Already in dd-mm-yyyy
-  const formattedLastProcessedDate = lastProcessedDate || null;
-
-  // Check if it's a new day
-  if (formattedLastProcessedDate === formattedCurrentDate) {
-    console.log(`No new day detected. Last processed: ${lastProcessedDate}, Current: ${currentDate}`);
-    return lastProcessedDate;
-  }
-
-  console.log(`New day detected! Processing data for ${currentDate}`);
+export const updateDailyDataForPreviousDay = async () => {
+  console.log(`Daily data update started at: ${new Date().toLocaleTimeString()}`);
   try {
     // Get the previous day's date
     const previousDate = new Date();
@@ -263,14 +251,11 @@ export const updateDailyData = async (lastProcessedDate) => {
 
     await addLifeData(giftsList, formattedPreviousDate);
     await addIndexData(formattedPreviousDate);
-    console.log(`Added data for previous day: ${formattedPreviousDate}`);
-
-    // Return the updated lastProcessedDate
-    console.log(`Updated lastProcessedDate to: ${currentDate}`);
-    return currentDate;
+    console.log(`Added daily data for previous day: ${formattedPreviousDate}`);
+    return formattedPreviousDate;
   } catch (error) {
-    console.error(`Failed to update daily data: ${error.message}`);
-    return lastProcessedDate;
+    console.error(`Failed to update daily data for previous day: ${error.message}`);
+    throw error;
   }
 };
 
@@ -278,7 +263,6 @@ export const addData = async () => {
   console.log(`Data update started at: ${new Date().toLocaleTimeString()}`);
   let browser;
   let tonPrice = null;
-  let lastProcessedDate = getDate("Europe/London").date; // Default to current date if not provided
 
   try {
     tonPrice = await fetchTonPrice();
@@ -344,10 +328,7 @@ export const addData = async () => {
       await delay(15000);
     }
 
-    // Update daily data
-    lastProcessedDate = await updateDailyData(lastProcessedDate);
     console.log(`Data update completed at: ${new Date().toLocaleTimeString()}`);
-    return lastProcessedDate;
   } catch (error) {
     console.error(`Unexpected error in addData: ${error.message}`);
     throw error;

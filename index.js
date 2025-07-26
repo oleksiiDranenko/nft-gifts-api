@@ -11,7 +11,7 @@ import { UserRouter } from './routes/users.js';
 import { SubscriptionRouter } from './routes/subscription.js';
 import { IndexRouter } from './routes/index.js';
 import { IndexDataRouter } from './routes/indexData.js';
-import { addData, addDailyDataForDate } from './bot/bot.js';
+import { addData, addDailyDataForDate, updateDailyDataForPreviousDay } from './bot/bot.js';
 import { migrateTelegramIds } from './utils/migrateUsers.js';
 
 
@@ -66,6 +66,16 @@ cron.schedule('0 0,30 * * * *', async () => {
     }
 });
 
+cron.schedule('0 0 0 * * *', async () => {
+    console.log('Daily data update cron job triggered at:', new Date().toISOString());
+    try {
+        await updateDailyDataForPreviousDay();
+        console.log('Daily data update cron job completed successfully');
+    } catch (error) {
+        console.error('Error in daily data update cron job:', error.stack);
+    }
+});
+
 app.get('/add-data', async (req, res) => {
   await addData();
   res.json('done')
@@ -79,7 +89,7 @@ const startServer = async () => {
       process.exit(1);
     }
 
-    // addDailyDataForDate('25-07-2025')
+    // addDailyDataForDate('26-07-2025')
 
     // Retry MongoDB connection
     let retries = 3;
