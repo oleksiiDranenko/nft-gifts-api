@@ -11,8 +11,9 @@ import { UserRouter } from './routes/users.js';
 import { SubscriptionRouter } from './routes/subscription.js';
 import { IndexRouter } from './routes/index.js';
 import { IndexDataRouter } from './routes/indexData.js';
-import { addData } from './bot/bot.js';
+import { addData, addDailyDataForDate } from './bot/bot.js';
 import { migrateTelegramIds } from './utils/migrateUsers.js';
+
 
 process.removeAllListeners('warning');
 
@@ -77,6 +78,8 @@ const startServer = async () => {
       console.error('Error: DB_CONNECTION_STRING environment variable is not set');
       process.exit(1);
     }
+
+    // addDailyDataForDate('25-07-2025')
 
     // Retry MongoDB connection
     let retries = 3;
