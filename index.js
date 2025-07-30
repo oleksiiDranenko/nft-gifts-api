@@ -34,12 +34,10 @@ app.use('/subscriptions', SubscriptionRouter);
 app.use('/indexes', IndexRouter);
 app.use('/indexData', IndexDataRouter);
 
-// Health check endpoint for Render
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', mongodb: mongoose.connection.readyState });
 });
 
-// Initialize Telegram bot and webhook
 (async () => {
   try {
     if (!process.env.TELEGRAM_BOT_TOKEN) {
