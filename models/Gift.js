@@ -12,7 +12,8 @@ const GiftSchema = new mongoose.Schema(
         initTonPrice: { type: Number, required: true },
         initUsdPrice: { type: Number, required: true },
         staked: { type: Boolean, required: false },
-        preSale: {type: Boolean, required: false}
+        preSale: {type: Boolean, required: false},
+        upgradedSupply: { type: Number, required: false }
     },
     { 
         collection: 'gifts',

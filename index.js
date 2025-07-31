@@ -13,6 +13,8 @@ import { IndexRouter } from './routes/index.js';
 import { IndexDataRouter } from './routes/indexData.js';
 import { addData, addDailyDataForDate, updateDailyDataForPreviousDay } from './bot/bot.js';
 import { migrateTelegramIds } from './utils/migrateUsers.js';
+import { getUpgradedSupply } from './utils/getUpgradedSupply.js';
+import { GiftModel } from './models/Gift.js';
 
 
 process.removeAllListeners('warning');
@@ -87,6 +89,7 @@ const startServer = async () => {
       process.exit(1);
     }
 
+
     // addDailyDataForDate('26-07-2025')
 
     // Retry MongoDB connection
@@ -109,6 +112,7 @@ const startServer = async () => {
         await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
       }
     }
+
 
     // Uncomment if you need to migrate Telegram IDs
     // await migrateTelegramIds();

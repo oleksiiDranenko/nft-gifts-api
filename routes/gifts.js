@@ -8,18 +8,16 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const finalGiftsList = await GiftModel.aggregate([
-      // Step 1: Fetch all gifts
-      { $match: {} }, // Match all gifts (you can add filters if needed)
+      { $match: {} },
 
-      // Step 2: Lookup last 24h data from WeekChartModel (24 hours ago)
       {
         $lookup: {
-          from: 'weekChart', // Correct collection name for WeekChartModel
+          from: 'weekChart',
           let: { giftName: '$name' },
           pipeline: [
             { $match: { $expr: { $eq: ['$name', '$$giftName'] } } },
             { $sort: { createdAt: -1 } },
-            { $skip: 47 }, // Skip 23 records to get ~24 hours ago
+            { $skip: 47 },
             { $limit: 1 },
             { $project: { priceTon: 1, priceUsd: 1 } }
           ],
@@ -27,14 +25,13 @@ router.get('/', async (req, res) => {
         }
       },
 
-      // Step 3: Lookup last week data from WeekChartModel (oldest record)
       {
         $lookup: {
-          from: 'weekChart', // Correct collection name for WeekChartModel
+          from: 'weekChart',
           let: { giftName: '$name' },
           pipeline: [
             { $match: { $expr: { $eq: ['$name', '$$giftName'] } } },
-            { $sort: { createdAt: 1 } }, // Oldest first
+            { $sort: { createdAt: 1 } },
             { $limit: 1 },
             { $project: { priceTon: 1, priceUsd: 1 } }
           ],
@@ -42,15 +39,14 @@ router.get('/', async (req, res) => {
         }
       },
 
-      // Step 4: Lookup last month data from LifeChartModel (30 days ago)
       {
         $lookup: {
-          from: 'lifeChart', // Correct collection name for LifeChartModel
+          from: 'lifeChart',
           let: { giftName: '$name' },
           pipeline: [
             { $match: { $expr: { $eq: ['$name', '$$giftName'] } } },
             { $sort: { _id: -1 } },
-            { $skip: 29 }, // Skip 29 records to get ~30 days ago
+            { $skip: 29 },
             { $limit: 1 },
             { $project: { priceTon: 1, priceUsd: 1 } }
           ],
@@ -58,14 +54,13 @@ router.get('/', async (req, res) => {
         }
       },
 
-      // Step 5: Lookup current price from WeekChartModel (most recent)
       {
         $lookup: {
-          from: 'weekChart', // Correct collection name for WeekChartModel
+          from: 'weekChart',
           let: { giftName: '$name' },
           pipeline: [
             { $match: { $expr: { $eq: ['$name', '$$giftName'] } } },
-            { $sort: { createdAt: -1 } }, // Most recent first
+            { $sort: { createdAt: -1 } },
             { $limit: 1 },
             { $project: { priceTon: 1, priceUsd: 1 } }
           ],
@@ -73,7 +68,6 @@ router.get('/', async (req, res) => {
         }
       },
 
-      // Step 6: Project the final output
       {
         $project: {
           name: 1,
@@ -87,6 +81,7 @@ router.get('/', async (req, res) => {
           initUsdPrice: 1,
           staked: 1,
           preSale: 1,
+          upgradedSupply: 1,           // <-- Added here
           tonPrice24hAgo: { $arrayElemAt: ['$last24hData.priceTon', 0] },
           usdPrice24hAgo: { $arrayElemAt: ['$last24hData.priceUsd', 0] },
           tonPriceWeekAgo: { $arrayElemAt: ['$lastWeekData.priceTon', 0] },
@@ -99,19 +94,13 @@ router.get('/', async (req, res) => {
       }
     ]);
 
-    // Add upgradedSupply to each gift
-    const finalGiftsWithUpgradedSupply = await Promise.all(
-      finalGiftsList.map(async (gift) => {
-        const upgradedSupply = await getUpgradedSupply(gift.name);
-        return { ...gift, upgradedSupply };
-      })
-    );
-
-    res.json(finalGiftsWithUpgradedSupply);
+    // No need to call getUpgradedSupply here anymore
+    res.json(finalGiftsList);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 router.get('/:giftId', async (req, res) => {
   const { giftId } = req.params;

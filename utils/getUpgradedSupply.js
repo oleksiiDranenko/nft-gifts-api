@@ -43,7 +43,7 @@ export async function getUpgradedSupply(giftName) {;
                 const totalSupply = parseInt(parts[1].replace(/\s/g, ''), 10);
 
                 if (!isNaN(upgradedSupply) && !isNaN(totalSupply)) {
-                    return upgradedSupply
+                    return {upgradedSupply, totalSupply}
                 } else {
                     console.warn('Could not parse numbers from quantity text:', quantityText);
                 }
