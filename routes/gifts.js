@@ -117,13 +117,10 @@ router.get('/:giftId', async (req, res) => {
       .limit(1)
       .lean();
 
-    const upgradedSupply = await getUpgradedSupply(gift.name);
-
     const finalGift = {
       ...gift.toObject(),
       priceTon: currentPrice.length ? currentPrice[0].priceTon : null,
       priceUsd: currentPrice.length ? currentPrice[0].priceUsd : null,
-      upgradedSupply
     };
 
     res.json(finalGift);
