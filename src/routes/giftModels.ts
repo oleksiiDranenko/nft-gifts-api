@@ -20,31 +20,43 @@ const router = express.Router();
 //     }
 // })
 
+
 router.get('/:giftId', async (req, res) => {
   const { giftId } = req.params;
 
   try {
-    const latestGift = await ModelsWeekChartModel
+    const giftModels = await GiftModelsModel.find({ giftId });
+
+    const latestChart = await ModelsWeekChartModel
       .findOne({ giftId })
       .sort({ createdAt: -1 });
 
-    if (!latestGift) {
-      return res.status(404).json({ message: 'No data found for this giftId' });
+    if (!latestChart) {
+      return res.json(giftModels);
     }
 
-    const totalPrice = latestGift.models.reduce(
-      (acc, model) => {
-        acc.priceTon += model.priceTon;
-        acc.priceUsd += model.priceUsd;
-        return acc;
-      },
-      { priceTon: 0, priceUsd: 0 }
-    );
-
-    res.json({
-      latestGift,
-      totalPrice
+    const priceMap: any = {};
+    latestChart.models.forEach(model => {
+      priceMap[model.name] = {
+        priceTon: model.priceTon,
+        priceUsd: model.priceUsd
+      };
     });
+
+    const result = giftModels.map(doc => {
+      const docObj = doc.toObject();
+      docObj.models = docObj.models.map(model => {
+        const prices = priceMap[model.name];
+        return {
+          ...model,
+          priceTon: prices ? prices.priceTon : null,
+          priceUsd: prices ? prices.priceUsd : null
+        };
+      });
+      return docObj;
+    });
+
+    res.json(result);
   } catch (error) {
     res.status(500).json(error);
   }
