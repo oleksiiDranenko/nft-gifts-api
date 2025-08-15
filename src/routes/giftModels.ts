@@ -3,17 +3,28 @@ import { GiftModelsModel } from '../models/Models';
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
-    const {giftId, models} = req.body;
+// router.post('/', async (req, res) => {
+//     const {giftId, models} = req.body;
 
+//     try {
+//         const newGiftModels = new GiftModelsModel({
+//             giftId,
+//             models
+//         })
+
+//         await newGiftModels.save()
+//         res.json(newGiftModels)
+//     } catch (error) {
+//         res.status(500).json(error)
+//     }
+// })
+
+router.get('/:giftId', async (req, res) => {
+    const {giftId} = req.params
     try {
-        const newGiftModels = new GiftModelsModel({
-            giftId,
-            models
-        })
+        const giftModels = await GiftModelsModel.find({giftId})
 
-        await newGiftModels.save()
-        res.json(newGiftModels)
+        res.json(giftModels)
     } catch (error) {
         res.status(500).json(error)
     }

@@ -19,18 +19,6 @@ router.get('/', async (req, res) => {
     }
 })
 
-// router.get('/remove-models', async (req, res) => {
-//   try {
-//     const result = await WeekChartModel.updateMany(
-//     { models: { $exists: true } },
-//     { $unset: { models: "" } }
-//   );
-//   res.json(result)
-//   } catch (error) {
-//     res.json(error)
-//   }
-// })
-
 
 export const addWeekData = async (data: any) => {
   try {
