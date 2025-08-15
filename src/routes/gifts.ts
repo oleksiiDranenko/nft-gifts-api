@@ -81,7 +81,6 @@ router.get('/', async (req, res) => {
           staked: 1,
           preSale: 1,
           upgradedSupply: 1,
-          models: 1,
           tonPrice24hAgo: { $arrayElemAt: ['$last24hData.priceTon', 0] },
           usdPrice24hAgo: { $arrayElemAt: ['$last24hData.priceUsd', 0] },
           tonPriceWeekAgo: { $arrayElemAt: ['$lastWeekData.priceTon', 0] },
