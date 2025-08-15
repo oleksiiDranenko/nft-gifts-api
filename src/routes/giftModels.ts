@@ -1,5 +1,6 @@
 import express from 'express'
 import { GiftModelsModel } from '../models/Models';
+import { ModelsWeekChartModel } from '../models/ModelsWeekChart';
 
 const router = express.Router();
 
@@ -20,14 +21,34 @@ const router = express.Router();
 // })
 
 router.get('/:giftId', async (req, res) => {
-    const {giftId} = req.params
-    try {
-        const giftModels = await GiftModelsModel.find({giftId})
+  const { giftId } = req.params;
 
-        res.json(giftModels)
-    } catch (error) {
-        res.status(500).json(error)
+  try {
+    const latestGift = await ModelsWeekChartModel
+      .findOne({ giftId })
+      .sort({ createdAt: -1 });
+
+    if (!latestGift) {
+      return res.status(404).json({ message: 'No data found for this giftId' });
     }
-})
+
+    const totalPrice = latestGift.models.reduce(
+      (acc, model) => {
+        acc.priceTon += model.priceTon;
+        acc.priceUsd += model.priceUsd;
+        return acc;
+      },
+      { priceTon: 0, priceUsd: 0 }
+    );
+
+    res.json({
+      latestGift,
+      totalPrice
+    });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
 
 export { router as GiftModelsRouter };  
