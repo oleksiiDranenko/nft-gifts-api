@@ -3,22 +3,22 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import cron from "node-cron";
-import { initializeBot } from "./telegram/bot.js";
-import { WeekRouter } from "./routes/weekData.js";
-import { LifeRouter } from "./routes/lifeData.js";
-import { GiftsRouter } from "./routes/gifts.js";
-import { UserRouter } from "./routes/users.js";
-import { SubscriptionRouter } from "./routes/subscription.js";
-import { IndexRouter } from "./routes/index.js";
-import { IndexDataRouter } from "./routes/indexData.js";
+import { initializeBot } from "./telegram/bot";
+import { WeekRouter } from "./routes/weekData";
+import { LifeRouter } from "./routes/lifeData";
+import { GiftsRouter } from "./routes/gifts";
+import { UserRouter } from "./routes/users";
+import { SubscriptionRouter } from "./routes/subscription";
+import { IndexRouter } from "./routes/index";
+import { IndexDataRouter } from "./routes/indexData";
 import {
   addData,
   addDailyDataForDate,
   updateDailyDataForPreviousDay,
-} from "./bot/bot.js";
-import { migrateTelegramIds } from "./utils/migrateUsers.js";
-import { getUpgradedSupply } from "./utils/getUpgradedSupply.js";
-import { GiftModel } from "./models/Gift.js";
+} from "./bot/bot";
+import { GiftModel } from "./models/Gift";
+import { addIndexData } from "./functions/index/addIndexData";
+import { getUpgradedSupply } from "./utils/getUpgradedSupply";
 
 process.removeAllListeners("warning");
 
@@ -71,7 +71,7 @@ cron.schedule("0 0,30 * * * *", async () => {
   try {
     await addData();
     console.log("Cron job completed successfully");
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in cron job:", error.stack);
   }
 });
@@ -84,7 +84,7 @@ cron.schedule("0 0 0 * * *", async () => {
   try {
     await updateDailyDataForPreviousDay();
     console.log("Daily data update cron job completed successfully");
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in daily data update cron job:", error.stack);
   }
 });
@@ -104,16 +104,12 @@ const startServer = async () => {
       process.exit(1);
     }
 
-    // addDailyDataForDate('26-07-2025')
 
     // Retry MongoDB connection
     let retries = 3;
     while (retries > 0) {
       try {
-        await mongoose.connect(dbConnectionString, {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        });
+        await mongoose.connect(dbConnectionString);
         console.log("Successfully connected to MongoDB");
         break;
       } catch (err) {
@@ -126,11 +122,13 @@ const startServer = async () => {
           console.error("Error connecting to MongoDB after retries:", err);
           process.exit(1);
         }
-        await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
+
+      
     }
 
-    const allGifts = await GiftModel.find();
+    // const allGifts = await GiftModel.find();
 
     // for (const gift of allGifts) {
     //   try {
@@ -138,6 +136,7 @@ const startServer = async () => {
 
     //     if (result && result.totalSupply) {
     //       gift.supply = result.totalSupply;
+    //       gift.upgradedSupply = result.upgradedSupply;
     //       await gift.save();
     //       console.log(
     //         `Updated ${gift.name}: totalSupply=${result.totalSupply}`
@@ -164,17 +163,5 @@ const startServer = async () => {
     process.exit(1);
   }
 };
-
-// Handle graceful shutdown
-// process.once('SIGINT', async () => {
-//   console.log('Stopping server due to SIGINT');
-//   await mongoose.connection.close();
-//   process.exit(0);
-// });
-// process.once('SIGTERM', async () => {
-//   console.log('Stopping server due to SIGTERM');
-//   await mongoose.connection.close();
-//   process.exit(0);
-// });
 
 startServer();

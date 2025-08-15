@@ -1,6 +1,6 @@
 // utils/migrateUsers.js
-import { UserModel } from '../models/User.js';
-import { hashValue } from './hash.js';
+import { UserModel } from '../models/User';
+import { hashValue } from './hash';
 
 export async function migrateTelegramIds() {
     const users = await UserModel.find();

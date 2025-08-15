@@ -1,5 +1,5 @@
 import express from 'express'
-import { IndexModel } from '../models/Index.js'
+import { IndexModel } from '../models/Index'
 
 const router = express.Router()
 

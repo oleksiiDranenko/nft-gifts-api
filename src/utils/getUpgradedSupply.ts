@@ -3,7 +3,7 @@ import fs from 'fs';
 import * as cheerio from 'cheerio';
 
 
-export async function getUpgradedSupply(giftName) {;
+export async function getUpgradedSupply(giftName: string) {;
     try {
 
         let formattedGiftName;
@@ -54,8 +54,8 @@ export async function getUpgradedSupply(giftName) {;
             console.warn('Quantity information not found in the HTML.');
         }
 
-    } catch (error) {
-        console.error(`Error fetching URL: ${url}`);
+    } catch (error: any) {
+        console.error(`Error fetching URL`);
         if (error.response) {
             console.error(`HTTP Status: ${error.response.status}`);
             console.error(`Response Data (Error):`, error.response.data);

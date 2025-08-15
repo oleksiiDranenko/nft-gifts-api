@@ -1,6 +1,6 @@
 import express from 'express';
-import { LifeChartModel } from '../models/LifeChart.js';
-import { WeekChartModel } from '../models/WeekChart.js';
+import { LifeChartModel } from '../models/LifeChart';
+import { WeekChartModel } from '../models/WeekChart';
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
 
 
 
-export const addLifeData = async (giftsList, date) => {
+export const addLifeData = async (giftsList: any, date: any) => {
     try {
         for (const gift of giftsList) {
             const list = await WeekChartModel.find({ name: gift, date });

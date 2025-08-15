@@ -1,6 +1,6 @@
 import express from 'express';
-import { UserModel } from '../models/User.js';
-import { hashValue } from '../utils/hash.js';
+import { UserModel } from '../models/User';
+import { hashValue } from '../utils/hash';
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.get('/check-account/:telegramId', async (req, res) => {
             return res.status(200).json({ ...userObj, telegramId: req.params.telegramId });
         }
         return res.status(200).json({ exists: false });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error checking account:', error);
         return res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -50,7 +50,7 @@ router.post('/create-account', async (req, res) => {
             message: 'Account created successfully', 
             user: { ...userObj, telegramId: req.body.telegramId }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating account:', error);
         return res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -80,7 +80,7 @@ router.patch('/update-account/:telegramId', async (req, res) => {
             message: 'User updated successfully', 
             user: { ...userObj, telegramId: req.params.telegramId }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error updating user:', error);
         return res.status(500).json({ message: 'Server error', error: error.message });
     }

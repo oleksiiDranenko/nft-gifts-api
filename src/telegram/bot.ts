@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
 import { Telegraf, Markup } from 'telegraf';
-import { GiftModel } from '../models/Gift.js';
-import { WeekChartModel } from '../models/WeekChart.js';
+import { WeekChartModel } from '../models/WeekChart';
+import { GiftModel } from '../models/Gift';
+
 
 // Fetch gift price data from MongoDB
-const getGiftPriceData = async (giftName) => {
+const getGiftPriceData = async (giftName: string) => {
   try {
     const [last24hData, currentPriceData] = await Promise.all([
       WeekChartModel.find({ name: giftName })
@@ -23,7 +23,7 @@ const getGiftPriceData = async (giftName) => {
       priceTon: currentPriceData[0]?.priceTon ?? null,
       priceUsd: currentPriceData[0]?.priceUsd ?? null,
     };
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(`Failed to fetch price data for ${giftName}: ${error.message}`);
   }
 };
@@ -39,17 +39,17 @@ const getGiftsList = async () => {
       }))
     );
     return enrichedGifts;
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(`Failed to fetch gifts list: ${error.message}`);
   }
 };
 
 // Sanitize HTML characters
-const sanitizeHtml = (text) =>
-  text.replace(/[<>&]/g, (char) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[char]));
+const sanitizeHtml = (text: string) =>
+  text.replace(/[<>&]/g, (char: string) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[char]) as string);
 
 // Format gifts message for Telegram
-const formatGiftsMessage = (gifts) => {
+const formatGiftsMessage = (gifts: any) => {
   const sorted = [...gifts].sort((a, b) => {
     const changeA = a.tonPrice24hAgo
       ? Math.abs((a.priceTon - a.tonPrice24hAgo) / a.tonPrice24hAgo * 100)
@@ -89,7 +89,7 @@ const formatGiftsMessage = (gifts) => {
 };
 
 // Initialize Telegram bot
-export const initializeBot = async (botToken) => {
+export const initializeBot = async (botToken: string) => {
   if (!botToken) {
     throw new Error('Bot token must be provided. Ensure TELEGRAM_BOT_TOKEN is set in environment variables.');
   }
@@ -122,7 +122,7 @@ export const initializeBot = async (botToken) => {
   }
 
   // Global error handler
-  bot.on('error', (err) => {
+  bot.on('error' as any, (err) => {
     console.error('Global bot error:', err);
   });
 
@@ -136,7 +136,7 @@ export const initializeBot = async (botToken) => {
           Markup.button.url('Open Mini App', 'https://t.me/gift_charts_bot?startapp=launch'),
         ])
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error.response?.error_code === 403) {
         console.warn(`Skipped: Bot was blocked by user ${ctx.chat.id}`);
       } else {
@@ -158,7 +158,7 @@ export const initializeBot = async (botToken) => {
       for (const message of messages) {
         try {
           await ctx.replyWithHTML(message);
-        } catch (error) {
+        } catch (error: any) {
           if (error.response?.error_code === 403) {
             console.warn(`Skipped: Bot was blocked by user ${ctx.chat.id}`);
           } else {
@@ -170,7 +170,7 @@ export const initializeBot = async (botToken) => {
       console.error('Error in /list command:', error);
       try {
         await ctx.replyWithHTML('Failed to fetch gifts. Please try again later.');
-      } catch (err) {
+      } catch (err: any) {
         if (err.response?.error_code === 403) {
           console.warn(`Skipped: Bot was blocked by user ${ctx.chat.id}`);
         } else {
