@@ -7,13 +7,6 @@ const WeekChartSchema = new mongoose.Schema(
     time: { type: String, required: true },
     priceTon: { type: Number, required: true },
     priceUsd: { type: Number, required: true },
-    models: [
-      {
-        name: { type: String, required: true },
-        priceTon: { type: Number, required: true },
-        priceUsd: { type: Number, required: true }
-      }
-    ],
     createdAt: { type: Date, default: Date.now, expires: '7d' }  
   },
   { 

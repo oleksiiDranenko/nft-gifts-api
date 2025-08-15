@@ -27,12 +27,7 @@ export const addWeekData = async (data: any) => {
       date: data.date,
       time: data.time,
       priceTon: data.priceTon,
-      priceUsd: data.priceUsd,
-      models: data.models?.map((model: any) => ({
-        name: model.name,
-        priceTon: model.priceTon,
-        priceUsd: model.priceUsd
-      })) || []
+      priceUsd: data.priceUsd
     });
 
     await newGiftData.save();

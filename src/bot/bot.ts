@@ -7,6 +7,7 @@ import { addLifeData } from "../routes/lifeData";
 import { GiftModel } from "../models/Gift";
 import { WeekChartModel } from "../models/WeekChart";
 import { addIndexData } from "../functions/index/addIndexData";
+import { addModelsWeekData } from "../routes/modelsWeekData";
 
 puppeteer.use(StealthPlugin());
 
@@ -234,8 +235,12 @@ const fetchGiftPrices = async () => {
 
 const processData = async (gift: any, tonPrice: any) => {
   const { date, time } = getDate("Europe/London");
-  const priceTon = parseFloat((parseInt(gift.stats.floor) / MICRO_TON).toFixed(2));
-  const priceUsd = tonPrice ? parseFloat((priceTon * tonPrice).toFixed(4)) : null;
+  const priceTon = parseFloat(
+    (parseInt(gift.stats.floor) / MICRO_TON).toFixed(2)
+  );
+  const priceUsd = tonPrice
+    ? parseFloat((priceTon * tonPrice).toFixed(4))
+    : null;
 
   const lastRecord = await WeekChartModel.findOne({ name: gift.name })
     .sort({ createdAt: -1 })
@@ -245,9 +250,11 @@ const processData = async (gift: any, tonPrice: any) => {
     return {
       name: gift.name,
       priceTon: lastRecord.priceTon,
-      priceUsd: tonPrice ? parseFloat((lastRecord.priceTon * tonPrice).toFixed(4)) : null,
+      priceUsd: tonPrice
+        ? parseFloat((lastRecord.priceTon * tonPrice).toFixed(4))
+        : null,
       date,
-      time
+      time,
     };
   }
 
@@ -256,9 +263,12 @@ const processData = async (gift: any, tonPrice: any) => {
 
 const fetchGiftModels = async (giftName: string, tonPrice: any) => {
   try {
-    const res = await axios.post("https://proxy.thermos.gifts/api/v1/attributes", {
-      collections: [giftName]
-    });
+    const res = await axios.post(
+      "https://proxy.thermos.gifts/api/v1/attributes",
+      {
+        collections: [giftName],
+      }
+    );
 
     const models = res.data[giftName]?.models || [];
 
@@ -266,12 +276,14 @@ const fetchGiftModels = async (giftName: string, tonPrice: any) => {
       const priceTon = m.stats?.floor
         ? parseFloat((parseInt(m.stats.floor) / MICRO_TON).toFixed(2))
         : 0;
-      const priceUsd = tonPrice ? parseFloat((priceTon * tonPrice).toFixed(4)) : null;
+      const priceUsd = tonPrice
+        ? parseFloat((priceTon * tonPrice).toFixed(4))
+        : null;
 
       return {
         name: m.name,
         priceTon,
-        priceUsd
+        priceUsd,
       };
     });
   } catch (error: any) {
@@ -325,7 +337,9 @@ export const addData = async () => {
 
     const giftData = await fetchGiftPrices();
 
-    const nonPreSaleGifts = await GiftModel.find({ preSale: { $ne: true } }).select("name -_id");
+    const nonPreSaleGifts = await GiftModel.find({
+      preSale: { $ne: true },
+    }).select("name");
     const nonPreSaleGiftNames = nonPreSaleGifts.map((gift) => gift.name);
 
     const validNonPreSaleGifts = giftData.filter((gift: any) =>
@@ -337,16 +351,19 @@ export const addData = async () => {
 
       const data = await processData(gift, tonPrice!);
 
-      await delay(700);
-
-      const models = await fetchGiftModels(gift.name, tonPrice!);
-
-      await addWeekData({ ...data, models });
+      await addWeekData(data);
 
       return true;
     });
 
+    const nonPreSaleModelsPromises = nonPreSaleGifts.map(async (gift) => {
+      await delay(700);
+      const models = await fetchGiftModels(gift.name, tonPrice!);
+      await addModelsWeekData({ giftId: gift._id, models });
+    });
+
     await Promise.all(nonPreSalePromises);
+    await Promise.all(nonPreSaleModelsPromises);
 
     console.log(`Data update finished at: ${new Date().toLocaleTimeString()}`);
   } catch (error: any) {
