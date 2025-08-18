@@ -1,5 +1,3 @@
-import axios from "axios";
-
 export const getDate = (timezone = 'Europe/London') => {
     const currentDate = new Date();
 
@@ -25,12 +23,17 @@ export const getDate = (timezone = 'Europe/London') => {
     return { date, time };
 };
 
-
-
-export const getTonPrice = async () => {
-    console.log('ton price request')
-	const res = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd')
-	const tonPrice = res.data['the-open-network'].usd
-
-	return tonPrice
+export const formatDateDDMMYYYY = (date: Date): string  => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
 }
+
+export const delay = (ms: number) => {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, ms);
+  });
+};

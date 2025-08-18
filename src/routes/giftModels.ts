@@ -27,14 +27,25 @@ router.get('/:giftId', async (req, res) => {
   try {
     const giftModels = await GiftModelsModel.find({ giftId });
 
+    // latest snapshot
     const latestChart = await ModelsWeekChartModel
       .findOne({ giftId })
       .sort({ createdAt: -1 });
+
+    // 24h ago snapshot (skip 47 docs, take 1)
+    const chart24hAgo = await ModelsWeekChartModel
+      .find({ giftId })
+      .sort({ createdAt: -1 })
+      .skip(47)
+      .limit(1);
+
+    const snapshot24h = chart24hAgo.length > 0 ? chart24hAgo[0] : null;
 
     if (!latestChart) {
       return res.json(giftModels);
     }
 
+    // map latest prices
     const priceMap: any = {};
     latestChart.models.forEach(model => {
       priceMap[model.name] = {
@@ -43,14 +54,29 @@ router.get('/:giftId', async (req, res) => {
       };
     });
 
+    // map 24h ago prices
+    const priceMap24h: any = {};
+    if (snapshot24h) {
+      snapshot24h.models.forEach(model => {
+        priceMap24h[model.name] = {
+          tonPrice24hAgo: model.priceTon,
+          usdPrice24hAgo: model.priceUsd
+        };
+      });
+    }
+
+    // merge into response
     const result = giftModels.map(doc => {
       const docObj = doc.toObject();
       docObj.models = docObj.models.map(model => {
-        const prices = priceMap[model.name];
+        const latest = priceMap[model.name];
+        const ago = priceMap24h[model.name] || {};
         return {
           ...model,
-          priceTon: prices ? prices.priceTon : null,
-          priceUsd: prices ? prices.priceUsd : null
+          priceTon: latest ? latest.priceTon : null,
+          priceUsd: latest ? latest.priceUsd : null,
+          tonPrice24hAgo: ago.tonPrice24hAgo || null,
+          usdPrice24hAgo: ago.usdPrice24hAgo || null,
         };
       });
       return docObj;
@@ -61,6 +87,7 @@ router.get('/:giftId', async (req, res) => {
     res.status(500).json(error);
   }
 });
+
 
 router.patch("/addModel/:giftId", async (req, res) => {
   const { giftId } = req.params;
