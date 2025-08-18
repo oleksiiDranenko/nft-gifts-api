@@ -349,6 +349,12 @@ export const addData = async () => {
     const nonPreSalePromises = validNonPreSaleGifts.map(async (gift: any) => {
       if (!gift?.stats?.floor) return false;
 
+      const dbGift = await GiftModel.findOne({ name: gift.name });
+      if (!dbGift) {
+        console.warn(`Gift ${gift.name} not found in GiftModel, skipping...`);
+        return false;
+      }
+
       const data = await processData(gift, tonPrice!);
 
       await addWeekData(data);
@@ -403,7 +409,7 @@ export const addDailyDataForDate = async (inputDate: any) => {
   );
 
   try {
-    const giftData = await fetchGiftPrices();
+    const giftData = await GiftModel.find();
     const giftsList = giftData.map((gift: any) => gift.name);
     const nonPreSaleGifts = await GiftModel.find({
       preSale: { $ne: true },

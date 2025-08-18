@@ -62,5 +62,35 @@ router.get('/:giftId', async (req, res) => {
   }
 });
 
+router.patch("/addModel/:giftId", async (req, res) => {
+  const { giftId } = req.params;
+  const { name, rarity, image } = req.body;
+
+  if (!name || !rarity || !image) {
+    return res.status(400).json({ message: "name, rarity, and image are required" });
+  }
+
+  try {
+    const updatedGiftModel = await GiftModelsModel.findOneAndUpdate(
+      { giftId },
+      {
+        $push: {
+          models: { name, rarity, image },
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedGiftModel) {
+      return res.status(404).json({ message: "Gift not found" });
+    }
+
+    res.status(200).json(updatedGiftModel);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 export { router as GiftModelsRouter };  
