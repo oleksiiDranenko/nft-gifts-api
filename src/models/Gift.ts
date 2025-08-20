@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const GiftSchema = new mongoose.Schema(
+const GiftSchema = new mongoose.Schema<GiftInterface>(
     {
         name: { type: String, required: true },
         image: { type: String, required: true},
@@ -20,5 +20,20 @@ const GiftSchema = new mongoose.Schema(
         versionKey: false
     } 
 );
+
+export interface GiftInterface extends Document {
+  name: string;
+  image: string;
+  supply: number;
+  initSupply: number;
+  releaseDate: string;
+  starsPrice: number;
+  upgradePrice: number;
+  initTonPrice: number;
+  initUsdPrice: number;
+  staked?: boolean;
+  preSale?: boolean;
+  upgradedSupply?: number;
+}
 
 export const GiftModel = mongoose.model('gifts', GiftSchema)

@@ -26,6 +26,7 @@ export const addWeekData = async (data: any) => {
       name: data.name,
       date: data.date,
       time: data.time,
+      amountOnSale: data.amountOnSale,
       priceTon: data.priceTon,
       priceUsd: data.priceUsd
     });

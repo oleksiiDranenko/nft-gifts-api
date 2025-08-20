@@ -21,44 +21,60 @@ router.get('/', async (req, res) => {
 })
 
 
-
 export const addLifeData = async (giftsList: any, date: any) => {
-    try {
-        for (const gift of giftsList) {
-            const list = await WeekChartModel.find({ name: gift, date });
+  try {
+    for (const gift of giftsList) {
+      const list = await WeekChartModel.find({ name: gift, date });
 
-            let sumTon = 0;
-            let sumUsd = 0;
+      let sumTon = 0;
+      let sumUsd = 0;
+      let sumAmountOnSale = 0;
+      let amountOnSaleCount = 0;
 
-            list.forEach((item) => {
-                sumTon += item.priceTon;
-                sumUsd += item.priceUsd;
-            });
+      list.forEach((item) => {
+        sumTon += item.priceTon;
+        sumUsd += item.priceUsd;
 
-            const avgPriceTon = list.length > 0 ? parseFloat((sumTon / list.length).toFixed(3)) : 0;
-            const avgPriceUsd = list.length > 0 ? parseFloat((sumUsd / list.length).toFixed(3)) : 0;
-
-            const openTon = list.length > 0 ? list[0].priceTon : 0;
-            const closeTon = list.length > 0 ? list[list.length - 1].priceTon : 0; 
-            const highTon = list.length > 0 ? Math.max(...list.map(item => item.priceTon)) : 0;
-            const lowTon = list.length > 0 ? Math.min(...list.map(item => item.priceTon)) : 0;
-
-            const newObject = new LifeChartModel({
-                name: gift,
-                date,
-                priceTon: avgPriceTon,
-                priceUsd: avgPriceUsd,
-                openTon,
-                closeTon,
-                highTon,
-                lowTon
-            });
-
-            await newObject.save();
+        if (item.amountOnSale !== undefined && item.amountOnSale !== null) {
+          sumAmountOnSale += item.amountOnSale;
+          amountOnSaleCount++;
         }
-    } catch (error) {
-        console.log(error);
+      });
+
+      const avgPriceTon =
+        list.length > 0 ? parseFloat((sumTon / list.length).toFixed(3)) : 0;
+      const avgPriceUsd =
+        list.length > 0 ? parseFloat((sumUsd / list.length).toFixed(3)) : 0;
+
+      const avgAmountOnSale =
+        amountOnSaleCount > 0
+          ? Math.round(sumAmountOnSale / amountOnSaleCount)
+          : null;
+
+      const openTon = list.length > 0 ? list[0].priceTon : 0;
+      const closeTon = list.length > 0 ? list[list.length - 1].priceTon : 0;
+      const highTon =
+        list.length > 0 ? Math.max(...list.map((item) => item.priceTon)) : 0;
+      const lowTon =
+        list.length > 0 ? Math.min(...list.map((item) => item.priceTon)) : 0;
+
+      const newObject = new LifeChartModel({
+        name: gift,
+        date,
+        priceTon: avgPriceTon,
+        priceUsd: avgPriceUsd,
+        amountOnSale: avgAmountOnSale,
+        openTon,
+        closeTon,
+        highTon,
+        lowTon,
+      });
+
+      await newObject.save();
     }
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 

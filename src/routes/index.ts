@@ -43,7 +43,7 @@ router.get('/get-one/:indexId', async (req, res) => {
 // POST
 
 router.post('/add-index', async (req, res) => {
-    const { name, shortName, description, image } = req.body
+    const { name, shortName, description, valueType } = req.body
 
     try {
         
@@ -59,7 +59,7 @@ router.post('/add-index', async (req, res) => {
             name,
             shortName,
             description,
-            image
+            valueType
         })
 
         await newIndex.save()

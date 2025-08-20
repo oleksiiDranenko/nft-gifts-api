@@ -4,11 +4,12 @@ import axios from "axios";
 import { delay, formatDateDDMMYYYY, getDate } from "./functions";
 import { addWeekData } from "../routes/weekData";
 import { addLifeData } from "../routes/lifeData";
-import { GiftModel } from "../models/Gift";
+import { GiftInterface, GiftModel } from "../models/Gift";
 import { addIndexData } from "../functions/index/addIndexData";
 import { addModelsWeekData } from "../routes/modelsWeekData";
 import { retryHandler } from "./operations/retryHandler";
 import { fetchTonPrice } from "./operations/getTonPrice";
+import { addModelsLifeData } from "../routes/modelsLifeData";
 
 puppeteer.use(StealthPlugin());
 
@@ -33,16 +34,27 @@ const fetchGiftPrices = async () => {
     return [];
   }
 };
-const processData = async (gift: any, tonPrice: any) => {
+const processData = async (gift: any, tonPrice: number) => {
   const { date, time } = getDate("Europe/London");
-  const priceTon = parseFloat(
-    (parseInt(gift.stats.floor) / MICRO_TON).toFixed(2)
-  );
+
+  const priceTon = gift?.stats?.floor
+    ? parseFloat((parseInt(gift.stats.floor) / MICRO_TON).toFixed(2))
+    : 0;
+
   const priceUsd = tonPrice
     ? parseFloat((priceTon * tonPrice).toFixed(4))
     : null;
 
-  return { name: gift.name, priceTon, priceUsd, date, time };
+  const amountOnSale = gift?.stats?.count ?? 0;
+
+  return { 
+    name: gift.name, 
+    priceTon, 
+    priceUsd, 
+    amountOnSale,
+    date, 
+    time 
+  };
 };
 
 
@@ -57,16 +69,17 @@ const fetchGiftModels = async (giftName: string, tonPrice: any) => {
 
     const models = res.data[giftName]?.models || [];
 
-    return models.map((m: any) => {
-      const priceTon = m.stats?.floor
-        ? parseFloat((parseInt(m.stats.floor) / MICRO_TON).toFixed(2))
+    return models.map((model: any) => {
+      const priceTon = model.stats?.floor
+        ? parseFloat((parseInt(model.stats.floor) / MICRO_TON).toFixed(2))
         : 0;
       const priceUsd = tonPrice
         ? parseFloat((priceTon * tonPrice).toFixed(4))
         : null;
-
+      const amountOnSale = model.stats.count
       return {
-        name: m.name,
+        name: model.name,
+        amountOnSale,
         priceTon,
         priceUsd,
       };
@@ -88,15 +101,14 @@ export const updateDailyDataForPreviousDay = async () => {
     previousDate.setDate(previousDate.getDate() - 1);
     const formattedPreviousDate = formatDateDDMMYYYY(previousDate);
 
-    const giftData = await fetchGiftPrices();
-    const giftsList = giftData.map((gift: any) => gift.name);
-    // const nonPreSaleGifts = await GiftModel.find({
-    //   preSale: { $ne: true },
-    // }).select("name -_id");
-    // const nonPreSaleGiftNames = nonPreSaleGifts.map((gift) => gift.name);
+    const giftData = await GiftModel.find();
+    const giftsList = giftData.map((gift: GiftInterface) => gift.name);
 
     await addLifeData(giftsList, formattedPreviousDate);
     await addIndexData(formattedPreviousDate);
+    for(let gift of giftData){
+      addModelsLifeData(gift._id, formattedPreviousDate)
+    }
   } catch (error: any) {
     console.error(
       `Failed to update daily data for previous day: ${error.message}`

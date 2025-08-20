@@ -1,9 +1,10 @@
 import { GiftModel } from '../../models/Gift';
 import { IndexModel } from '../../models/Index';
 import { LifeChartModel } from '../../models/LifeChart';
-import {calculateTMCAndSave, calculateFDVAndSave} from './indexFunctions'
+import {calculateTMCAndSave, calculateFDVAndSave, calculateTSAndSave} from './indexFunctions'
 
 export const addIndexData = async (date: string) => {
+  console.log('start for the date: ' + date)
   try {
     const indexList = await IndexModel.find();
     const giftsList = await GiftModel.find();
@@ -14,6 +15,8 @@ export const addIndexData = async (date: string) => {
           await calculateTMCAndSave(date, index._id, giftsList, lifeData);
         } else if (index.shortName === 'FDV') {
           await calculateFDVAndSave(date, index._id, giftsList, lifeData);
+        } else if (index.shortName === 'TS') {
+          await calculateTSAndSave(date, index._id, giftsList, lifeData);
         }
     }
   } catch (error: any) {

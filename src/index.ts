@@ -20,6 +20,7 @@ import { GiftModel } from "./models/Gift";
 import { addIndexData } from "./functions/index/addIndexData";
 import { getUpgradedSupply } from "./utils/getUpgradedSupply";
 import { GiftModelsRouter } from "./routes/giftModels";
+import { TelegramRouter } from "./routes/telegram";
 
 process.removeAllListeners("warning");
 
@@ -40,6 +41,7 @@ app.use("/subscriptions", SubscriptionRouter);
 app.use("/indexes", IndexRouter);
 app.use("/indexData", IndexDataRouter);
 app.use('/giftModels', GiftModelsRouter)
+app.use('/telegram', TelegramRouter)
 
 app.get("/health", (req, res) => {
   res
@@ -47,49 +49,49 @@ app.get("/health", (req, res) => {
     .json({ status: "ok", mongodb: mongoose.connection.readyState });
 });
 
-(async () => {
-  try {
-    if (!process.env.TELEGRAM_BOT_TOKEN) {
-      console.error(
-        "Error: TELEGRAM_BOT_TOKEN environment variable is not set. Bot functionality will be disabled."
-      );
-      return;
-    }
-    const bot = await initializeBot(process.env.TELEGRAM_BOT_TOKEN);
-    app.post("/bot", bot.webhookCallback("/bot"));
-    console.log("Webhook route configured for Telegram bot");
-  } catch (err) {
-    console.error(
-      "Failed to initialize Telegram bot, continuing without bot:",
-      err
-    );
-  }
-})();
+// (async () => {
+//   try {
+//     if (!process.env.TELEGRAM_BOT_TOKEN) {
+//       console.error(
+//         "Error: TELEGRAM_BOT_TOKEN environment variable is not set. Bot functionality will be disabled."
+//       );
+//       return;
+//     }
+//     const bot = await initializeBot(process.env.TELEGRAM_BOT_TOKEN);
+//     app.post("/bot", bot.webhookCallback("/bot"));
+//     console.log("Webhook route configured for Telegram bot");
+//   } catch (err) {
+//     console.error(
+//       "Failed to initialize Telegram bot, continuing without bot:",
+//       err
+//     );
+//   }
+// })();
 
 process.env.TZ = "Europe/London";
 
-cron.schedule("0 0,30 * * * *", async () => {
-  console.log("Cron job triggered at:", new Date().toISOString());
-  try {
-    await addData();
-    console.log("Cron job completed successfully");
-  } catch (error: any) {
-    console.error("Error in cron job:", error.stack);
-  }
-});
+// cron.schedule("0 0,30 * * * *", async () => {
+//   console.log("Cron job triggered at:", new Date().toISOString());
+//   try {
+//     await addData();
+//     console.log("Cron job completed successfully");
+//   } catch (error: any) {
+//     console.error("Error in cron job:", error.stack);
+//   }
+// });
 
-cron.schedule("0 0 0 * * *", async () => {
-  console.log(
-    "Daily data update cron job triggered at:",
-    new Date().toISOString()
-  );
-  try {
-    await updateDailyDataForPreviousDay();
-    console.log("Daily data update cron job completed successfully");
-  } catch (error: any) {
-    console.error("Error in daily data update cron job:", error.stack);
-  }
-});
+// cron.schedule("0 0 0 * * *", async () => {
+//   console.log(
+//     "Daily data update cron job triggered at:",
+//     new Date().toISOString()
+//   );
+//   try {
+//     await updateDailyDataForPreviousDay();
+//     console.log("Daily data update cron job completed successfully");
+//   } catch (error: any) {
+//     console.error("Error in daily data update cron job:", error.stack);
+//   }
+// });
 
 app.get("/add-data", async (req, res) => {
   await addData();
@@ -127,35 +129,7 @@ const startServer = async () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
       }
 
-      
     }
-
-    // const allGifts = await GiftModel.find();
-
-    // for (const gift of allGifts) {
-    //   try {
-    //     const result = await getUpgradedSupply(gift.name);
-
-    //     if (result && result.totalSupply) {
-    //       gift.supply = result.totalSupply;
-    //       gift.upgradedSupply = result.upgradedSupply;
-    //       await gift.save();
-    //       console.log(
-    //         `Updated ${gift.name}: totalSupply=${result.totalSupply}`
-    //       );
-    //     } else {
-    //       console.warn(
-    //         `Could not retrieve totalSupply for ${gift.name}. Result:`,
-    //         result
-    //       );
-    //     }
-    //   } catch (error) {
-    //     console.error(`Error updating ${gift.name}:`, error);
-    //   }
-    // }
-
-    // Uncomment if you need to migrate Telegram IDs
-    // await migrateTelegramIds();
 
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const ModelsWeekChartSchema = new mongoose.Schema(
+const ModelsLifeChartSchema = new mongoose.Schema(
   {
     giftId: {
           type: mongoose.Schema.Types.ObjectId,
@@ -17,13 +17,11 @@ const ModelsWeekChartSchema = new mongoose.Schema(
       }
     ],
     date: { type: String, required: true }, 
-    time: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now, expires: '7d' }  
   },
   { 
-    collection: 'modelsWeekChart',
+    collection: 'modelsLifeChart',
     versionKey: false
   }
 );
 
-export const ModelsWeekChartModel = mongoose.model('modelsWeekChart', ModelsWeekChartSchema);
+export const ModelsLifeChartModel = mongoose.model('modelsLifeChart', ModelsLifeChartSchema);
