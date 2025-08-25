@@ -21,6 +21,7 @@ import { addIndexData } from "./functions/index/addIndexData";
 import { getUpgradedSupply } from "./utils/getUpgradedSupply";
 import { GiftModelsRouter } from "./routes/giftModels";
 import { TelegramRouter } from "./routes/telegram";
+import { updateUpgradedSupply } from "./utils/updateUpgradedSupply";
 
 process.removeAllListeners("warning");
 
@@ -80,6 +81,7 @@ if (!inDev) {
     console.log("Cron job triggered at:", new Date().toISOString());
     try {
       await addData();
+      await updateUpgradedSupply()
       console.log("Cron job completed successfully");
     } catch (error: any) {
       console.error("Error in cron job:", error.stack);
