@@ -15,7 +15,6 @@ puppeteer.use(StealthPlugin());
 
 const MICRO_TON = 1_000_000_000;
 
-
 const fetchGiftPrices = async () => {
   try {
     const response = await retryHandler(
@@ -47,16 +46,70 @@ const processData = async (gift: any, tonPrice: number) => {
 
   const amountOnSale = gift?.stats?.count ?? 0;
 
-  return { 
-    name: gift.name, 
-    priceTon, 
-    priceUsd, 
+  return {
+    name: gift.name,
+    priceTon,
+    priceUsd,
     amountOnSale,
-    date, 
-    time 
+    date,
+    time,
   };
 };
 
+const fetchPreSaleGiftPrices = async (preSaleGiftNames: string[]) => {
+  try {
+    const res = await axios.get(
+      "https://portals-market.com/partners/collections/floors",
+      {
+        headers: {
+          Authorization: `partners ${process.env.PORTALS_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const floorPrices = res.data?.floorPrices || {};
+
+    // Normalize input names for matching
+    const results = preSaleGiftNames
+      .map((originalName) => {
+        const normalized = originalName.toLowerCase().replace(/\s+/g, "");
+        const price = floorPrices[normalized];
+        if (!price) return null;
+
+        return {
+          name: originalName, // keep original casing & spaces
+          price: Number(price),
+        };
+      })
+      .filter(Boolean); // remove nulls
+
+    return results;
+  } catch (error) {
+    console.error("Error fetching pre-sale gift prices:", error);
+    return [];
+  }
+};
+const processPreSaleData = async (
+  gift: { name: string; price: number },
+  tonPrice: number
+) => {
+  const { date, time } = getDate("Europe/London");
+
+  const priceTon = gift.price;
+  const priceUsd = tonPrice
+    ? parseFloat((priceTon * tonPrice).toFixed(4))
+    : null;
+
+  return {
+    name: gift.name,
+    priceTon,
+    priceUsd,
+    amountOnSale: 0,
+    date,
+    time,
+  };
+};
 
 const fetchGiftModels = async (giftName: string, tonPrice: any) => {
   try {
@@ -76,7 +129,7 @@ const fetchGiftModels = async (giftName: string, tonPrice: any) => {
       const priceUsd = tonPrice
         ? parseFloat((priceTon * tonPrice).toFixed(4))
         : null;
-      const amountOnSale = model.stats.count
+      const amountOnSale = model.stats.count;
       return {
         name: model.name,
         amountOnSale,
@@ -89,8 +142,6 @@ const fetchGiftModels = async (giftName: string, tonPrice: any) => {
     return [];
   }
 };
-
-
 
 export const updateDailyDataForPreviousDay = async () => {
   console.log(
@@ -106,8 +157,8 @@ export const updateDailyDataForPreviousDay = async () => {
 
     await addLifeData(giftsList, formattedPreviousDate);
     await addIndexData(formattedPreviousDate);
-    for(let gift of giftData){
-      addModelsLifeData(gift._id, formattedPreviousDate)
+    for (let gift of giftData) {
+      addModelsLifeData(gift._id, formattedPreviousDate);
     }
   } catch (error: any) {
     console.error(
@@ -118,7 +169,7 @@ export const updateDailyDataForPreviousDay = async () => {
 };
 
 export const addData = async () => {
-  console.log('Data update started');
+  console.log("Data update started");
   let tonPrice: number | null = null;
 
   try {
@@ -136,6 +187,13 @@ export const addData = async () => {
       nonPreSaleGiftNames.includes(gift.name)
     );
 
+    const preSaleGifts = await GiftModel.find({
+      preSale: true,
+    }).select("name");
+    const preSaleGiftNames = preSaleGifts.map((gift) => gift.name);
+
+    const preSalePrices = await fetchPreSaleGiftPrices(preSaleGiftNames);
+
     const nonPreSalePromises = validNonPreSaleGifts.map(async (gift: any) => {
       if (!gift?.stats?.floor) return false;
 
@@ -151,6 +209,19 @@ export const addData = async () => {
       return true;
     });
 
+    const preSalePromises = preSalePrices
+      .filter((gift): gift is { name: string; price: number } => gift !== null)
+      .map(async (gift) => {
+        const dbGift = await GiftModel.findOne({ name: gift.name });
+        if (!dbGift) return false;
+
+        const data = await processPreSaleData(gift, tonPrice!);
+
+        await addWeekData(data);
+
+        return true;
+      });
+
     const nonPreSaleModelsPromises = nonPreSaleGifts.map(async (gift) => {
       await delay(700);
       const models = await fetchGiftModels(gift.name, tonPrice!);
@@ -158,6 +229,7 @@ export const addData = async () => {
     });
 
     await Promise.all(nonPreSalePromises);
+    await Promise.all(preSalePromises);
     await Promise.all(nonPreSaleModelsPromises);
 
     console.log(`Data update finished at: ${new Date().toLocaleTimeString()}`);
