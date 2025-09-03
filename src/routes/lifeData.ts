@@ -29,11 +29,15 @@ export const addLifeData = async (giftsList: any, date: any) => {
       let sumTon = 0;
       let sumUsd = 0;
       let sumAmountOnSale = 0;
+      let sumVolume = 0;
+      let sumSalesCount = 0;
       let amountOnSaleCount = 0;
 
       list.forEach((item) => {
         sumTon += item.priceTon;
         sumUsd += item.priceUsd;
+        sumVolume += item.volume ?? 0;
+        sumSalesCount += item.salesCount ?? 0;
 
         if (item.amountOnSale !== undefined && item.amountOnSale !== null) {
           sumAmountOnSale += item.amountOnSale;
@@ -68,6 +72,8 @@ export const addLifeData = async (giftsList: any, date: any) => {
         closeTon,
         highTon,
         lowTon,
+        volume: sumVolume,
+        salesCount: sumSalesCount,
       });
 
       await newObject.save();
@@ -76,6 +82,7 @@ export const addLifeData = async (giftsList: any, date: any) => {
     console.log(error);
   }
 };
+
 
 
 

@@ -22,6 +22,7 @@ import { getUpgradedSupply } from "./utils/getUpgradedSupply";
 import { GiftModelsRouter } from "./routes/giftModels";
 import { TelegramRouter } from "./routes/telegram";
 import { updateUpgradedSupply } from "./utils/updateUpgradedSupply";
+import { fetchVolume } from "./bot/operations/fetchVolume";
 
 process.removeAllListeners("warning");
 

@@ -10,10 +10,21 @@ import { addModelsWeekData } from "../routes/modelsWeekData";
 import { retryHandler } from "./operations/retryHandler";
 import { fetchTonPrice } from "./operations/getTonPrice";
 import { addModelsLifeData } from "../routes/modelsLifeData";
+import { fetchVolume, MergedCollection } from "./operations/fetchVolume";
 
 puppeteer.use(StealthPlugin());
 
 const MICRO_TON = 1_000_000_000;
+
+interface GiftDataInput {
+  name: string;
+  stats?: {
+    floor?: string;
+    count?: number;
+  };
+  volume?: number;
+  salesCount?: number;
+}
 
 const fetchGiftPrices = async () => {
   try {
@@ -33,7 +44,8 @@ const fetchGiftPrices = async () => {
     return [];
   }
 };
-const processData = async (gift: any, tonPrice: number) => {
+
+const processData = async (gift: GiftDataInput, tonPrice: number) => {
   const { date, time } = getDate("Europe/London");
 
   const priceTon = gift?.stats?.floor
@@ -53,6 +65,8 @@ const processData = async (gift: any, tonPrice: number) => {
     amountOnSale,
     date,
     time,
+    volume: gift.volume ?? 0,
+    salesCount: gift.salesCount ?? 0,
   };
 };
 
@@ -178,36 +192,38 @@ export const addData = async () => {
 
     const giftData = await fetchGiftPrices();
 
-    const nonPreSaleGifts = await GiftModel.find({
-      preSale: { $ne: true },
-    }).select("name");
-    const nonPreSaleGiftNames = nonPreSaleGifts.map((gift) => gift.name);
+    const volumeData = await fetchVolume();
+    const volumeMap = new Map<string, MergedCollection>();
+    volumeData.forEach((item) => {
+      volumeMap.set(item.name, item);
+    });
 
+    const nonPreSaleGifts = await GiftModel.find({ preSale: { $ne: true } }).select("name");
+    const nonPreSaleGiftNames = nonPreSaleGifts.map((gift) => gift.name);
     const validNonPreSaleGifts = giftData.filter((gift: any) =>
       nonPreSaleGiftNames.includes(gift.name)
     );
-
-    const preSaleGifts = await GiftModel.find({
-      preSale: true,
-    }).select("name");
-    const preSaleGiftNames = preSaleGifts.map((gift) => gift.name);
-
-    const preSalePrices = await fetchPreSaleGiftPrices(preSaleGiftNames);
 
     const nonPreSalePromises = validNonPreSaleGifts.map(async (gift: any) => {
       if (!gift?.stats?.floor) return false;
 
       const dbGift = await GiftModel.findOne({ name: gift.name });
-      if (!dbGift) {
-        return false;
-      }
+      if (!dbGift) return false;
 
-      const data = await processData(gift, tonPrice!);
+      const volumeInfo = volumeMap.get(gift.name) || { volume: 0, salesCount: 0 };
+
+      const data = await processData(
+        { ...gift, volume: volumeInfo.volume, salesCount: volumeInfo.salesCount },
+        tonPrice!
+      );
 
       await addWeekData(data);
-
       return true;
     });
+
+    const preSaleGifts = await GiftModel.find({ preSale: true }).select("name");
+    const preSaleGiftNames = preSaleGifts.map((gift) => gift.name);
+    const preSalePrices = await fetchPreSaleGiftPrices(preSaleGiftNames);
 
     const preSalePromises = preSalePrices
       .filter((gift): gift is { name: string; price: number } => gift !== null)
@@ -215,10 +231,12 @@ export const addData = async () => {
         const dbGift = await GiftModel.findOne({ name: gift.name });
         if (!dbGift) return false;
 
-        const data = await processPreSaleData(gift, tonPrice!);
+        const data = await processPreSaleData(
+          gift,
+          tonPrice!
+        );
 
         await addWeekData(data);
-
         return true;
       });
 
@@ -238,6 +256,7 @@ export const addData = async () => {
     throw error;
   }
 };
+
 
 export const addDailyDataForDate = async (inputDate: any) => {
   const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
