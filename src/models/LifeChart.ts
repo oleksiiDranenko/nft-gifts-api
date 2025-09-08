@@ -11,6 +11,8 @@ const LifeChartSchema = new mongoose.Schema(
         closeTon: { type: Number, required: false },
         highTon: { type: Number, required: false },
         lowTon: { type: Number, required: false },
+        volume: { type: Number, required: false },
+        salesCount: {type: Number, required: false}
     },
     { 
         collection: 'lifeChart',
