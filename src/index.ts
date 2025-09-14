@@ -23,6 +23,7 @@ import { GiftModelsRouter } from "./routes/giftModels";
 import { TelegramRouter } from "./routes/telegram";
 import { updateUpgradedSupply } from "./utils/updateUpgradedSupply";
 import { fetchVolume } from "./bot/operations/fetchVolume";
+import { addFearGreedIndex } from "./bot/fear-and-greed/addFearAndGreed";
 
 process.removeAllListeners("warning");
 
@@ -55,7 +56,6 @@ const inDev = false;
 
 if (!inDev) {
   (async () => {
-    console.log('hello')
     try {
       if (!process.env.TELEGRAM_BOT_TOKEN) {
         console.error(
@@ -82,7 +82,8 @@ if (!inDev) {
     console.log("Cron job triggered at:", new Date().toISOString());
     try {
       await addData();
-      await updateUpgradedSupply()
+      await addFearGreedIndex();
+      await updateUpgradedSupply();
       console.log("Cron job completed successfully");
     } catch (error: any) {
       console.error("Error in cron job:", error.stack);

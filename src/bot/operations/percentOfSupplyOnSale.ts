@@ -1,5 +1,5 @@
-import { WeekChartModel } from "../../../models/WeekChart";
-import { getNonPreSaleGifts } from "../../shared/getNonPreSaleGifts";
+import { WeekChartModel } from "../../models/WeekChart";
+import { getNonPreSaleGifts } from "../shared/getNonPreSaleGifts";
 
 const countTotalAmountOnSale = async () => {
   const nonPreSaleGifts = await getNonPreSaleGifts();
@@ -7,10 +7,8 @@ const countTotalAmountOnSale = async () => {
   const nonPreSaleGiftNames = nonPreSaleGifts.map((gift) => gift.name);
 
   const docs = await Promise.all(
-    nonPreSaleGiftNames.map(name =>
-      WeekChartModel.findOne({ name })
-        .sort({ createdAt: -1 })
-        .exec()
+    nonPreSaleGiftNames.map((name) =>
+      WeekChartModel.findOne({ name }).sort({ createdAt: -1 }).exec()
     )
   );
   const totalAmountOnSale = docs.reduce((sum, doc) => {
