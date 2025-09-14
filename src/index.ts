@@ -24,6 +24,7 @@ import { TelegramRouter } from "./routes/telegram";
 import { updateUpgradedSupply } from "./utils/updateUpgradedSupply";
 import { fetchVolume } from "./bot/operations/fetchVolume";
 import { addFearGreedIndex } from "./bot/fear-and-greed/addFearAndGreed";
+import { FearAndGreedRouter } from "./routes/fearAndGreed";
 
 process.removeAllListeners("warning");
 
@@ -44,6 +45,7 @@ app.use("/subscriptions", SubscriptionRouter);
 app.use("/indexes", IndexRouter);
 app.use("/indexData", IndexDataRouter);
 app.use("/giftModels", GiftModelsRouter);
+app.use("/fearAndGreed", FearAndGreedRouter);
 app.use("/telegram", TelegramRouter);
 
 app.get("/health", (req, res) => {
