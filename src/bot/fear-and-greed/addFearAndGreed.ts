@@ -100,8 +100,8 @@ const getFearGreedIndex = async () => {
   const priceChange = await avg3dPriceChange();
   const volumeChange = await dailyVolumePercentChange();
 
-  const priceScore = normalizeAsymmetric(priceChange, -50, 100);
-  const volumeScore = normalizeAsymmetric(volumeChange, -70, 300);
+  const priceScore = normalizeAsymmetric(priceChange, -70, 100);
+  const volumeScore = normalizeAsymmetric(volumeChange, -80, 300);
 
   const index = 0.5 * priceScore + 0.5 * volumeScore;
 
