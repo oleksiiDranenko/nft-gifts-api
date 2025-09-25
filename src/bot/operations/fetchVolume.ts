@@ -39,6 +39,7 @@ const fetchRawVolume = async () => {
 };
 
 const markets = ["getgems", "mrkt", "portals", "tonnel"] as const;
+const normalizeName = (name: string) => name.replace(/[’‘]/g, "'");
 
 const mergeCollections = (data: ApiResponse): MergedCollection[] => {
   const merged: Record<string, MergedCollection> = {};
@@ -46,17 +47,13 @@ const mergeCollections = (data: ApiResponse): MergedCollection[] => {
   for (const market of markets) {
     const collections = data[market]?.collections || [];
 
-    let key;
     for (const col of collections) {
-      if (col.collection_name === "Durov’s Cap") {
-        key = "Durov's Cap";
-      } else {
-        key = col.collection_name;
-      }
+      const key = col.collection_name;
+      const normalizedName = normalizeName(col.name);
 
       if (!merged[key]) {
         merged[key] = {
-          name: col.name,
+          name: normalizedName,
           salesCount: 0,
           volume: 0,
         };
