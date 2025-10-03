@@ -128,7 +128,7 @@ const processPreSaleData = async (
 
 const fetchGiftModels = async (
   giftName: string,
-  giftId: string,
+  giftId: any,
   tonPrice: any
 ) => {
   try {
@@ -266,11 +266,7 @@ export const addData = async () => {
 
     const nonPreSaleModelsPromises = nonPreSaleGifts.map(async (gift) => {
       await delay(700);
-      const models = await fetchGiftModels(
-        gift.name,
-        gift._id.toString(),
-        tonPrice!
-      );
+      const models = await fetchGiftModels(gift.name, gift._id, tonPrice!);
       await addModelsWeekData({ giftId: gift._id, models });
     });
 
