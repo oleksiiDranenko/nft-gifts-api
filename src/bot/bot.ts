@@ -11,6 +11,7 @@ import { retryHandler } from "./operations/retryHandler";
 import { fetchTonPrice } from "./operations/getTonPrice";
 import { addModelsLifeData } from "../routes/modelsLifeData";
 import { fetchVolume, MergedCollection } from "./operations/fetchVolume";
+import { GiftModelsModel } from "../models/Models";
 
 puppeteer.use(StealthPlugin());
 
@@ -125,7 +126,11 @@ const processPreSaleData = async (
   };
 };
 
-const fetchGiftModels = async (giftName: string, tonPrice: any) => {
+const fetchGiftModels = async (
+  giftName: string,
+  giftId: string,
+  tonPrice: any
+) => {
   try {
     const res = await axios.post(
       "https://proxy.thermos.gifts/api/v1/attributes",
@@ -135,6 +140,19 @@ const fetchGiftModels = async (giftName: string, tonPrice: any) => {
     );
 
     const models = res.data[giftName]?.models || [];
+
+    let giftModelsDoc = await GiftModelsModel.findOne({ giftId });
+
+    if (!giftModelsDoc) {
+      giftModelsDoc = await GiftModelsModel.create({
+        giftId,
+        models: models.map((model: any) => ({
+          name: model.name,
+          rarity: model.rarity_per_mille / 10,
+          image: model.image_url,
+        })),
+      });
+    }
 
     return models.map((model: any) => {
       const priceTon = model.stats?.floor
@@ -198,7 +216,9 @@ export const addData = async () => {
       volumeMap.set(item.name, item);
     });
 
-    const nonPreSaleGifts = await GiftModel.find({ preSale: { $ne: true } }).select("name");
+    const nonPreSaleGifts = await GiftModel.find({
+      preSale: { $ne: true },
+    }).select("name");
     const nonPreSaleGiftNames = nonPreSaleGifts.map((gift) => gift.name);
     const validNonPreSaleGifts = giftData.filter((gift: any) =>
       nonPreSaleGiftNames.includes(gift.name)
@@ -210,10 +230,17 @@ export const addData = async () => {
       const dbGift = await GiftModel.findOne({ name: gift.name });
       if (!dbGift) return false;
 
-      const volumeInfo = volumeMap.get(gift.name) || { volume: 0, salesCount: 0 };
+      const volumeInfo = volumeMap.get(gift.name) || {
+        volume: 0,
+        salesCount: 0,
+      };
 
       const data = await processData(
-        { ...gift, volume: volumeInfo.volume, salesCount: volumeInfo.salesCount },
+        {
+          ...gift,
+          volume: volumeInfo.volume,
+          salesCount: volumeInfo.salesCount,
+        },
         tonPrice!
       );
 
@@ -231,10 +258,7 @@ export const addData = async () => {
         const dbGift = await GiftModel.findOne({ name: gift.name });
         if (!dbGift) return false;
 
-        const data = await processPreSaleData(
-          gift,
-          tonPrice!
-        );
+        const data = await processPreSaleData(gift, tonPrice!);
 
         await addWeekData(data);
         return true;
@@ -242,7 +266,11 @@ export const addData = async () => {
 
     const nonPreSaleModelsPromises = nonPreSaleGifts.map(async (gift) => {
       await delay(700);
-      const models = await fetchGiftModels(gift.name, tonPrice!);
+      const models = await fetchGiftModels(
+        gift.name,
+        gift._id.toString(),
+        tonPrice!
+      );
       await addModelsWeekData({ giftId: gift._id, models });
     });
 
@@ -256,7 +284,6 @@ export const addData = async () => {
     throw error;
   }
 };
-
 
 export const addDailyDataForDate = async (inputDate: any) => {
   const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
