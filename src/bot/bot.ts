@@ -190,7 +190,7 @@ export const updateDailyDataForPreviousDay = async () => {
     await addLifeData(giftsList, formattedPreviousDate);
     await addIndexData(formattedPreviousDate);
     for (let gift of giftData) {
-      addModelsLifeData(gift._id, formattedPreviousDate);
+      await addModelsLifeData(gift._id, formattedPreviousDate);
     }
   } catch (error: any) {
     console.error(

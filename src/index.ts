@@ -25,7 +25,7 @@ import { updateUpgradedSupply } from "./utils/updateUpgradedSupply";
 import { fetchVolume } from "./bot/operations/fetchVolume";
 import { addFearGreedIndex } from "./bot/fear-and-greed/addFearAndGreed";
 import { FearAndGreedRouter } from "./routes/fearAndGreed";
-import {VoteRouter} from './routes/vote'
+import { VoteRouter } from "./routes/vote";
 
 process.removeAllListeners("warning");
 
@@ -48,7 +48,7 @@ app.use("/indexData", IndexDataRouter);
 app.use("/giftModels", GiftModelsRouter);
 app.use("/fearAndGreed", FearAndGreedRouter);
 app.use("/telegram", TelegramRouter);
-app.use('/vote', VoteRouter)
+app.use("/vote", VoteRouter);
 
 app.get("/health", (req, res) => {
   res

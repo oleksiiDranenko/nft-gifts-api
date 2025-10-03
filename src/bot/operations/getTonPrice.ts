@@ -1,13 +1,17 @@
-import axios from "axios"
-import { retryHandler } from "./retryHandler"
+import axios from "axios";
+import { retryHandler } from "./retryHandler";
 
 export const getTonPrice = async () => {
-    console.log('ton price request')
-	const res = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd')
-	const tonPrice = res.data['the-open-network'].usd
+  console.log("TON price request");
 
-	return tonPrice
-}
+  const res = await axios.get(
+    "https://api.cryptorank.io/v0/widget/price-ticker/toncoin?baseKey=united-states-dollar&secondaryKey=none&convertToBase=true"
+  );
+  const tonPriceString = res.data.data.price;
+  const tonPrice = parseFloat(tonPriceString.replace(/[^0-9.]/g, ""));
+
+  return tonPrice;
+};
 
 export const fetchTonPrice = async () => {
   try {
