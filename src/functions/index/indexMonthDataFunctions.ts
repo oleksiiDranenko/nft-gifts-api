@@ -4,17 +4,18 @@ import { IndexMonthDataModel } from "../../models/IndexMonthData";
 
 export const calculateTMCAndSave = async (
   date: string,
+  time: string,
   indexId: any,
   giftsList: any,
-  weekData: any
+  monthData: any
 ) => {
   try {
-    if (!weekData.length || !giftsList.length) return;
+    if (!monthData.length || !giftsList.length) return;
 
     let totalPriceTon = 0;
     let totalPriceUsd = 0;
 
-    for (const record of weekData) {
+    for (const record of monthData) {
       const gift = giftsList.find(
         (item: GiftInterface) => item.name === record.name
       );
@@ -38,6 +39,7 @@ export const calculateTMCAndSave = async (
     const newData = new IndexMonthDataModel({
       indexId: indexId.toString(),
       date,
+      time,
       priceTon: totalPriceTon,
       priceUsd: totalPriceUsd,
     });
@@ -52,12 +54,13 @@ export const calculateTMCAndSave = async (
 
 export const calculateFDVAndSave = async (
   date: string,
+  time: string,
   indexId: any,
   giftsList: any,
-  weekData: any
+  monthData: any
 ) => {
   try {
-    if (!weekData.length || !giftsList.length) return null;
+    if (!monthData.length || !giftsList.length) return null;
 
     const supplyMap: any = {};
     giftsList.forEach((gift: any) => {
@@ -67,7 +70,7 @@ export const calculateFDVAndSave = async (
     let totalPriceTon = 0;
     let totalPriceUsd = 0;
 
-    for (const record of weekData) {
+    for (const record of monthData) {
       const supply = supplyMap[record.name] || 0;
       if (supply === 0) continue;
 
@@ -83,6 +86,7 @@ export const calculateFDVAndSave = async (
     const newData = new IndexMonthDataModel({
       indexId: indexId.toString(),
       date,
+      time,
       priceTon: totalPriceTon,
       priceUsd: totalPriceUsd,
     });
@@ -99,22 +103,19 @@ export const calculateFDVAndSave = async (
 
 export const calculateTSAndSave = async (
   date: string,
+  time: string,
   indexId: any,
-  giftsList: any,
-  weekData: any
+  giftsList: any
 ) => {
   try {
-    if (!weekData.length || !giftsList.length) return null;
+    if (!giftsList?.length) return null;
 
     let totalSupply = 0;
 
-    for (const record of weekData) {
-      const gift = giftsList.find(
-        (item: GiftInterface) => item.name === record.name
-      );
-      if (!gift || !isFinite(gift.upgradedSupply)) continue;
-
-      totalSupply += gift.upgradedSupply;
+    for (const gift of giftsList) {
+      if (isFinite(gift.upgradedSupply)) {
+        totalSupply += gift.upgradedSupply;
+      }
     }
 
     if (!isFinite(totalSupply)) return null;
@@ -122,11 +123,13 @@ export const calculateTSAndSave = async (
     const newData = new IndexMonthDataModel({
       indexId: indexId.toString(),
       date,
+      time,
       priceTon: totalSupply,
       priceUsd: totalSupply,
     });
 
     await newData.save();
+
     return { totalSupply };
   } catch (error: any) {
     console.error(
@@ -138,37 +141,32 @@ export const calculateTSAndSave = async (
 
 export const calculateVolumeAndSave = async (
   date: string,
+  time: string,
   indexId: any,
   giftsList: any,
-  weekData: any
+  monthData: any
 ) => {
   try {
-    if (!weekData.length || !giftsList.length) return null;
+    if (!Array.isArray(monthData) || !monthData.length) return null;
+    if (!Array.isArray(giftsList) || !giftsList.length) return null;
 
     let totalVolume = 0;
 
-    // Group records by gift name
-    const groupedRecords: Record<string, any[]> = {};
-    for (const record of weekData) {
-      if (!groupedRecords[record.name]) {
-        groupedRecords[record.name] = [];
+    // Get all unique gift names from giftsList
+    const giftNames = giftsList.map((g: any) => g.name);
+
+    for (const giftName of giftNames) {
+      // Filter monthData for this gift
+      const giftRecords = monthData.filter((rec: any) => rec.name === giftName);
+      if (!giftRecords.length) continue;
+
+      // Take the last record (most recent)
+      const lastRecord = giftRecords[giftRecords.length - 1];
+      const vol = parseFloat(lastRecord.volume);
+
+      if (isFinite(vol)) {
+        totalVolume += vol;
       }
-      groupedRecords[record.name].push(record);
-    }
-
-    // For each gift: take last 48 records and sum volume
-    for (const giftName in groupedRecords) {
-      const records = groupedRecords[giftName];
-      const last48 = records.slice(-48);
-
-      let giftVolume = 0;
-      for (const rec of last48) {
-        const vol = parseFloat(rec.volume);
-        if (!isFinite(vol)) continue;
-        giftVolume += vol;
-      }
-
-      totalVolume += giftVolume;
     }
 
     totalVolume = parseFloat(totalVolume.toFixed(4));
@@ -177,11 +175,13 @@ export const calculateVolumeAndSave = async (
     const newData = new IndexMonthDataModel({
       indexId: indexId.toString(),
       date,
-      priceTon: totalVolume, // reusing same fields
-      priceUsd: totalVolume, // store in both Ton/Usd slots
+      time,
+      priceTon: totalVolume,
+      priceUsd: totalVolume,
     });
 
     await newData.save();
+
     return { totalVolume };
   } catch (error: any) {
     console.error(
@@ -193,6 +193,7 @@ export const calculateVolumeAndSave = async (
 
 export const calculatePercentOnSaleAndSave = async (
   date: string,
+  time: string,
   indexId: any
 ) => {
   const value = await calculatePercentOnSale();
@@ -200,6 +201,7 @@ export const calculatePercentOnSaleAndSave = async (
   const newData = new IndexMonthDataModel({
     indexId: indexId.toString(),
     date,
+    time,
     priceTon: value,
     priceUsd: value,
   });
