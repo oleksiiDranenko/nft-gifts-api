@@ -2,8 +2,6 @@ import axios from "axios";
 import { retryHandler } from "./retryHandler";
 
 export const getTonPrice = async () => {
-  console.log("TON price request");
-
   const res = await axios.get(
     "https://api.cryptorank.io/v0/widget/price-ticker/toncoin?baseKey=united-states-dollar&secondaryKey=none&convertToBase=true"
   );

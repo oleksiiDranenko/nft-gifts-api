@@ -26,6 +26,7 @@ import { fetchVolume } from "./bot/operations/fetchVolume";
 import { addFearGreedIndex } from "./bot/fear-and-greed/addFearAndGreed";
 import { FearAndGreedRouter } from "./routes/fearAndGreed";
 import { VoteRouter } from "./routes/vote";
+import { addIndexMonthData } from "./functions/index/addIndexMonthData";
 
 process.removeAllListeners("warning");
 
@@ -88,6 +89,7 @@ if (!inDev) {
       await addData();
       await addFearGreedIndex();
       await updateUpgradedSupply();
+      await addIndexMonthData();
       console.log("Cron job completed successfully");
     } catch (error: any) {
       console.error("Error in cron job:", error.stack);

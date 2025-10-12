@@ -1,0 +1,668 @@
+[
+  {
+    "_id": { "$oid": "67d4d159b3a80f9db1277b69" },
+    "name": "Eternal Candle",
+    "image": "eternalCandle",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d6135c4b4e341848689bd9" },
+    "name": "Evil Eye",
+    "image": "evilEye",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d6139b4b4e341848689bdb" },
+    "name": "Hex Pot",
+    "image": "hexPot",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d6140f4b4e341848689bdd" },
+    "name": "Scared Cat",
+    "image": "scaredCat",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d614794b4e341848689bdf" },
+    "name": "Voodoo Doll",
+    "image": "voodooDoll",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d614b34b4e341848689be1" },
+    "name": "Crystal Ball",
+    "image": "crystalBall",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d615254b4e341848689be3" },
+    "name": "Flying Broom",
+    "image": "flyingBroom",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d616134b4e341848689be5" },
+    "name": "Skull Flower",
+    "image": "skullFlower",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d616494b4e341848689be7" },
+    "name": "Trapped Heart",
+    "image": "trappedHeart",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d616a14b4e341848689be9" },
+    "name": "Mad Pumpkin",
+    "image": "madPumpkin",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d616e74b4e341848689beb" },
+    "name": "Sharp Tongue",
+    "image": "sharpTongue",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d6175b4b4e341848689bed" },
+    "name": "Ion Gem",
+    "image": "ionGem",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d6181b4b4e341848689bef" },
+    "name": "Kissed Frog",
+    "image": "kissedFrog",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d618984b4e341848689bf1" },
+    "name": "Electric Skull",
+    "image": "electricSkull",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d6191f4b4e341848689bf3" },
+    "name": "Magic Potion",
+    "image": "magicPotion",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d61a364b4e341848689bf5" },
+    "name": "Spy Agaric",
+    "image": "spyAgaric",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d61b304b4e341848689bf7" },
+    "name": "Vintage Cigar",
+    "image": "vintageCigar",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d61c354b4e341848689bf9" },
+    "name": "Berry Box",
+    "image": "berryBox",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d61ceb4b4e341848689bfb" },
+    "name": "Eternal Rose",
+    "image": "eternalRose",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d61d854b4e341848689bfd" },
+    "name": "Mini Oscar",
+    "image": "miniOscar",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d61e534b4e341848689bff" },
+    "name": "Perfume Bottle",
+    "image": "perfumeBottle",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d61ee14b4e341848689c01" },
+    "name": "Love Candle",
+    "image": "loveCandle",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d61f7e4b4e341848689c03" },
+    "name": "Durov's Cap",
+    "image": "durov'sCap",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d6203e4b4e341848689c05" },
+    "name": "Hanging Star",
+    "image": "hangingStar",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d621114b4e341848689c07" },
+    "name": "Jelly Bunny",
+    "image": "jellyBunny",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d86ac70137bef30d9e424b" },
+    "name": "Plush Pepe",
+    "image": "plushPepe",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d86b790137bef30d9e424d" },
+    "name": "Precious Peach",
+    "image": "preciousPeach",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d86c450137bef30d9e424f" },
+    "name": "Astral Shard",
+    "image": "astralShard",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d86cca0137bef30d9e4251" },
+    "name": "Genie Lamp",
+    "image": "genieLamp",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d86d410137bef30d9e4253" },
+    "name": "Signet Ring",
+    "image": "signetRing",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d86db00137bef30d9e4255" },
+    "name": "Swiss Watch",
+    "image": "swissWatch",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d86e320137bef30d9e4257" },
+    "name": "Bunny Muffin",
+    "image": "bunnyMuffin",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d870260137bef30d9e4259" },
+    "name": "Loot Bag",
+    "image": "lootBag",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d871120137bef30d9e425b" },
+    "name": "Diamond Ring",
+    "image": "diamondRing",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d871590137bef30d9e425d" },
+    "name": "Love Potion",
+    "image": "lovePotion",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d872360137bef30d9e425f" },
+    "name": "Top Hat",
+    "image": "topHat",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d873330137bef30d9e4261" },
+    "name": "Neko Helmet",
+    "image": "nkeoHelmet",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67d8bbe80137bef30d9e4263" },
+    "name": "Toy Bear",
+    "image": "toyBear",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67e9d3c10805483290ecf846" },
+    "name": "Homemade Cake",
+    "image": "homemadeCake",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67eba9f4e93d1a065dc8f3bc" },
+    "name": "Jack-in-the-Box",
+    "image": "jack-in-the-box",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa77770e0b35aa1f467ce6" },
+    "name": "Ginger Cookie",
+    "image": "gingerCookie",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa77a70e0b35aa1f467ce8" },
+    "name": "Winter Wreath",
+    "image": "winterWreath",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa77da0e0b35aa1f467cea" },
+    "name": "Cookie Heart",
+    "image": "cookieHeart",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa78010e0b35aa1f467cec" },
+    "name": "Hypno Lollipop",
+    "image": "hypnoLollipop",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa78250e0b35aa1f467cee" },
+    "name": "Jester Hat",
+    "image": "jesterHat",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa785c0e0b35aa1f467cf0" },
+    "name": "Jingle Bells",
+    "image": "jingleBells",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa78870e0b35aa1f467cf2" },
+    "name": "Party Sparkler",
+    "image": "partySparkler",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa78a90e0b35aa1f467cf4" },
+    "name": "Record Player",
+    "image": "recordPlayer",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa78eb0e0b35aa1f467cf6" },
+    "name": "Sakura Flower",
+    "image": "sakuraFlower",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa790d0e0b35aa1f467cf8" },
+    "name": "Sleigh Bell",
+    "image": "sleighBell",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa79280e0b35aa1f467cfa" },
+    "name": "Santa Hat",
+    "image": "santaHat",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa79490e0b35aa1f467cfc" },
+    "name": "Snow Globe",
+    "image": "snowGlobe",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa79680e0b35aa1f467cfe" },
+    "name": "Snow Mittens",
+    "image": "snowMittens",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa79860e0b35aa1f467d00" },
+    "name": "Star Notepad",
+    "image": "starNotepad",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa79a80e0b35aa1f467d02" },
+    "name": "Spiced Wine",
+    "image": "spicedWine",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  { "_id": { "$oid": "67fa79cd0e0b35aa1f467d04" }, "name": "Tama Gadget" },
+  {
+    "_id": { "$oid": "67fa79f10e0b35aa1f467d06" },
+    "name": "Witch Hat",
+    "image": "whitchHat",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa7a260e0b35aa1f467d08" },
+    "name": "Candy Cane",
+    "image": "candyCane",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "67fa7a570e0b35aa1f467d0a" },
+    "name": "Lunar Snake",
+    "image": "lunarSnake",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68057152e23b578a26da3f24" },
+    "name": "Easter Egg",
+    "image": "easterEgg",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68194d45f83e1c4745ad0169" },
+    "name": "Lol Pop",
+    "image": "lolPop",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68194f8ff83e1c4745ad016b" },
+    "name": "B-Day Candle",
+    "image": "b-dayCandle",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68194ffdf83e1c4745ad01f7" },
+    "name": "Desk Calendar",
+    "image": "deskCalendar",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68324037e449695a885d1f7a" },
+    "name": "Nail Bracelet",
+    "image": "nailBracelet",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68324108e449695a885d2113" },
+    "name": "Light Sword",
+    "image": "lightSword",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "683241d3e449695a885d2303" },
+    "name": "Bonded Ring",
+    "image": "bondedRing",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68324293e449695a885d23ad" },
+    "name": "Gem Signet",
+    "image": "gemSignet",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "6832434ce449695a885d24a7" },
+    "name": "Restless Jar",
+    "image": "restlessJar",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "683243cee449695a885d2589" },
+    "name": "Big Year",
+    "image": "bigYear",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68324455e449695a885d2640" },
+    "name": "Holiday Drink",
+    "image": "holidayDrink",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "683244cce449695a885d26ce" },
+    "name": "Xmas Stocking",
+    "image": "xmasStocking",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "6832456fe449695a885d27d7" },
+    "name": "Snake Box",
+    "image": "snakeBox",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "683245afe449695a885d27da" },
+    "name": "Pet Snake",
+    "image": "petSnake",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "683424c053f73a42f3b51f73" },
+    "name": "Heroic Helmet",
+    "image": "heroicHelmet",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "6834255253f73a42f3b521de" },
+    "name": "Bow Tie",
+    "image": "bowTie",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "6838d9857cf24953cab82299" },
+    "name": "Heart Locket",
+    "image": "heartLocket",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68474582985d9dc16ab22418" },
+    "name": "Lush Bouquet",
+    "image": "lushBouquet",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "686a4aca599177355d715ba3" },
+    "name": "Whip Cupcake",
+    "image": "whipCupcake",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "686a4b81599177355d715ec6" },
+    "name": "Joyful Bundle",
+    "image": "joyfulBundle",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "686a4c40599177355d716123" },
+    "name": "Valentine Box",
+    "image": "valintineBox",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "686a4cd9599177355d7163c6" },
+    "name": "Cupid Charm",
+    "image": "cupidCharm",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "686fe2bd9ec5b47781425c76" },
+    "name": "Swag Bag",
+    "image": "swagBag",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "686fe3809ec5b47781425ded" },
+    "name": "Snoop Cigar",
+    "image": "snoopCigar",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "686fe4249ec5b47781426041" },
+    "name": "Low Rider",
+    "image": "lowRider",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "686fe4829ec5b477814261e4" },
+    "name": "Westside Sign",
+    "image": "westsideSign",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "686fe67c9ec5b477814268d7" },
+    "name": "Snoop Dogg",
+    "image": "snoopDogg",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68acec3bd55911c66bd33538" },
+    "name": "Stellar Rocket",
+    "image": "stellarRocker",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68aceddfd55911c66bd33539" },
+    "name": "Moon Pendant",
+    "image": "moonPendant",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68acee85d55911c66bd3353a" },
+    "name": "Ionic Dryer",
+    "image": "ionicDryer",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68acef4dd55911c66bd3353b" },
+    "name": "Jolly Chimp",
+    "image": "jollyChimp",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68d1cd7b7c5b25395e036713" },
+    "name": "Input Key",
+    "image": "inputKey",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68d25b8b7c5b25395e036715" },
+    "name": "Mighty Arm",
+    "image": "mightyArm",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68d25d797c5b25395e036716" },
+    "name": "Artisan Brick",
+    "image": "artisanBrick",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68d785b64086894b6d6eb98c" },
+    "name": "Clover Pin",
+    "image": "cloverPin",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68d785d84086894b6d6eb98d" },
+    "name": "Fresh Socks",
+    "image": "freshSocks",
+    "supply": 0,
+    "upgradedSupply": 0
+  },
+  {
+    "_id": { "$oid": "68d785ef4086894b6d6eb98e" },
+    "name": "Sky Stilettos",
+    "image": "skyStilettos",
+    "supply": 0,
+    "upgradedSupply": 0
+  }
+]

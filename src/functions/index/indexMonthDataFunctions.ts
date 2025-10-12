@@ -1,3 +1,4 @@
+import { fetchTonPrice } from "../../bot/operations/getTonPrice";
 import { calculatePercentOnSale } from "../../bot/operations/percentOfSupplyOnSale";
 import { GiftInterface } from "../../models/Gift";
 import { IndexMonthDataModel } from "../../models/IndexMonthData";
@@ -6,35 +7,72 @@ export const calculateTMCAndSave = async (
   date: string,
   time: string,
   indexId: any,
-  giftsList: any,
-  monthData: any
+  giftsList: any[],
+  weekData: any[]
 ) => {
   try {
-    if (!monthData.length || !giftsList.length) return;
+    // Validate inputs
+    if (
+      !Array.isArray(weekData) ||
+      !weekData.length ||
+      !Array.isArray(giftsList) ||
+      !giftsList.length
+    ) {
+      console.warn(
+        "Invalid input: monthData or giftsList is empty or not an array"
+      );
+      return;
+    }
 
     let totalPriceTon = 0;
     let totalPriceUsd = 0;
 
-    for (const record of monthData) {
+    for (const record of weekData) {
+      // Ensure record has necessary fields
+      if (!record || !record.name || !record.priceTon || !record.priceUsd) {
+        console.warn(`Skipping invalid record: ${JSON.stringify(record)}`);
+        continue;
+      }
+
       const gift = giftsList.find(
         (item: GiftInterface) => item.name === record.name
       );
-      if (!gift || !isFinite(gift.upgradedSupply)) continue;
+      if (!gift) {
+        console.warn(`No gift found for record name: ${record.name}`);
+        continue;
+      }
 
-      const supply = gift.upgradedSupply;
-      const priceTon = parseFloat(record.priceTon);
-      const priceUsd = parseFloat(record.priceUsd);
+      const supply = Number(gift.upgradedSupply);
+      const priceTon = Number(record.priceTon);
+      const priceUsd = Number(record.priceUsd);
 
-      if (!isFinite(priceTon) || !isFinite(priceUsd)) continue;
+      // Validate numbers
+      if (
+        !Number.isFinite(supply) ||
+        !Number.isFinite(priceTon) ||
+        !Number.isFinite(priceUsd)
+      ) {
+        console.warn(
+          `Invalid values - supply: ${supply}, priceTon: ${priceTon}, priceUsd: ${priceUsd} for record: ${record.name}`
+        );
+        continue;
+      }
 
       totalPriceTon += priceTon * supply;
       totalPriceUsd += priceUsd * supply;
     }
 
-    totalPriceTon = parseFloat(totalPriceTon.toFixed(4));
-    totalPriceUsd = parseFloat(totalPriceUsd.toFixed(4));
+    // Round to 4 decimal places, ensuring no NaN
+    totalPriceTon = Number(totalPriceTon.toFixed(4));
+    totalPriceUsd = Number(totalPriceUsd.toFixed(4));
 
-    if (!isFinite(totalPriceTon) || !isFinite(totalPriceUsd)) return;
+    // Final validation before saving
+    if (!Number.isFinite(totalPriceTon) || !Number.isFinite(totalPriceUsd)) {
+      console.error(
+        `Non-finite totals - totalPriceTon: ${totalPriceTon}, totalPriceUsd: ${totalPriceUsd}`
+      );
+      return;
+    }
 
     const newData = new IndexMonthDataModel({
       indexId: indexId.toString(),
@@ -45,6 +83,7 @@ export const calculateTMCAndSave = async (
     });
 
     await newData.save();
+    console.log(`TMC saved for date: ${date}, indexId: ${indexId}`);
   } catch (error: any) {
     console.error(
       `Error saving market cap data for ${date}, ${indexId}: ${error.stack}`
@@ -57,10 +96,10 @@ export const calculateFDVAndSave = async (
   time: string,
   indexId: any,
   giftsList: any,
-  monthData: any
+  weekData: any
 ) => {
   try {
-    if (!monthData.length || !giftsList.length) return null;
+    if (!weekData.length || !giftsList.length) return null;
 
     const supplyMap: any = {};
     giftsList.forEach((gift: any) => {
@@ -70,7 +109,7 @@ export const calculateFDVAndSave = async (
     let totalPriceTon = 0;
     let totalPriceUsd = 0;
 
-    for (const record of monthData) {
+    for (const record of weekData) {
       const supply = supplyMap[record.name] || 0;
       if (supply === 0) continue;
 
@@ -144,11 +183,13 @@ export const calculateVolumeAndSave = async (
   time: string,
   indexId: any,
   giftsList: any,
-  monthData: any
+  weekData: any
 ) => {
   try {
-    if (!Array.isArray(monthData) || !monthData.length) return null;
+    if (!Array.isArray(weekData) || !weekData.length) return null;
     if (!Array.isArray(giftsList) || !giftsList.length) return null;
+
+    const ton = await fetchTonPrice();
 
     let totalVolume = 0;
 
@@ -157,7 +198,7 @@ export const calculateVolumeAndSave = async (
 
     for (const giftName of giftNames) {
       // Filter monthData for this gift
-      const giftRecords = monthData.filter((rec: any) => rec.name === giftName);
+      const giftRecords = weekData.filter((rec: any) => rec.name === giftName);
       if (!giftRecords.length) continue;
 
       // Take the last record (most recent)
@@ -177,7 +218,7 @@ export const calculateVolumeAndSave = async (
       date,
       time,
       priceTon: totalVolume,
-      priceUsd: totalVolume,
+      priceUsd: totalVolume * ton,
     });
 
     await newData.save();
@@ -195,16 +236,32 @@ export const calculatePercentOnSaleAndSave = async (
   date: string,
   time: string,
   indexId: any
-) => {
-  const value = await calculatePercentOnSale();
+): Promise<void> => {
+  try {
+    const value = await calculatePercentOnSale();
+    console.log("Calculated percentOnSale value:", value);
 
-  const newData = new IndexMonthDataModel({
-    indexId: indexId.toString(),
-    date,
-    time,
-    priceTon: value,
-    priceUsd: value,
-  });
+    if (value === 0) {
+      console.warn(
+        "Percent on sale is 0. Check WeekChartModel data (amountOnSale) and nonPreSaleGifts (upgradedSupply)."
+      );
+    }
 
-  await newData.save();
+    const newData = new IndexMonthDataModel({
+      indexId: indexId.toString(),
+      date,
+      time,
+      priceTon: value,
+      priceUsd: value,
+    });
+
+    await newData.save();
+    console.log(
+      `Saved IndexMonthData for date: ${date}, indexId: ${indexId}, value: ${value}`
+    );
+  } catch (error: any) {
+    console.error(
+      `Error saving percent on sale for ${date}, ${indexId}: ${error.stack}`
+    );
+  }
 };

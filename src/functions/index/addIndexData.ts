@@ -1,23 +1,23 @@
-import { GiftModel } from '../../models/Gift';
-import { IndexModel } from '../../models/Index';
-import { LifeChartModel } from '../../models/LifeChart';
-import {calculateTMCAndSave, calculateFDVAndSave, calculateTSAndSave} from './indexFunctions'
+import { IndexModel } from "../../models/Index";
+import { calculateAvgAndSave, calculateSumAndSave } from "./indexFunctions";
 
 export const addIndexData = async (date: string) => {
-  console.log('start for the date: ' + date)
+  console.log("start for the date: " + date);
   try {
     const indexList = await IndexModel.find();
-    const giftsList = await GiftModel.find();
-    const lifeData = await LifeChartModel.find({ date });
 
     for (let index of indexList) {
-        if (index.shortName === 'TMC') {
-          await calculateTMCAndSave(date, index._id, giftsList, lifeData);
-        } else if (index.shortName === 'FDV') {
-          await calculateFDVAndSave(date, index._id, giftsList, lifeData);
-        } else if (index.shortName === 'TS') {
-          await calculateTSAndSave(date, index._id, giftsList, lifeData);
-        }
+      if (index.shortName === "TMC") {
+        calculateAvgAndSave(index._id, date);
+      } else if (index.shortName === "FDV") {
+        calculateAvgAndSave(index._id, date);
+      } else if (index.shortName === "TS") {
+        calculateAvgAndSave(index._id, date);
+      } else if (index.shortName === "VOL") {
+        calculateSumAndSave(index._id, date);
+      } else if (index.shortName === "%onSale") {
+        calculateAvgAndSave(index._id, date);
+      }
     }
   } catch (error: any) {
     console.error(`Error processing index data for ${date}: ${error.stack}`);
