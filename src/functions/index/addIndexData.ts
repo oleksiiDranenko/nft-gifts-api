@@ -6,17 +6,19 @@ export const addIndexData = async (date: string) => {
   try {
     const indexList = await IndexModel.find();
 
+    console.log(indexList);
+
     for (let index of indexList) {
       if (index.shortName === "TMC") {
-        calculateAvgAndSave(index._id, date);
+        await calculateAvgAndSave(index._id.toString(), date);
       } else if (index.shortName === "FDV") {
-        calculateAvgAndSave(index._id, date);
+        await calculateAvgAndSave(index._id.toString(), date);
       } else if (index.shortName === "TS") {
-        calculateAvgAndSave(index._id, date);
+        await calculateAvgAndSave(index._id.toString(), date);
       } else if (index.shortName === "VOL") {
-        calculateSumAndSave(index._id, date);
+        await calculateSumAndSave(index._id.toString(), date);
       } else if (index.shortName === "%onSale") {
-        calculateAvgAndSave(index._id, date);
+        await calculateAvgAndSave(index._id.toString(), date);
       }
     }
   } catch (error: any) {

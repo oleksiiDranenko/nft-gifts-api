@@ -15,6 +15,7 @@ export async function calculateAvgAndSave(indexId: any, date: string) {
     ]);
 
     if (!result.length) {
+      console.log("no data found");
       return null;
     }
 
