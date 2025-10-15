@@ -1,6 +1,6 @@
 import express from "express";
-import { IndexModel } from "../models/Index.js";
-import { IndexMonthDataModel } from "../models/IndexMonthData.js";
+import { IndexModel } from "../models/Index";
+import { IndexMonthDataModel } from "../models/IndexMonthData";
 
 const router = express.Router();
 
