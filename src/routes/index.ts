@@ -4,11 +4,12 @@ import { IndexMonthDataModel } from "../models/IndexMonthData";
 
 const router = express.Router();
 
-// Helper function to get latest + 24h ago data for an index
-const getIndexPrices = async (indexId: any) => {
+// Helper: get price/volume stats for index
+const getIndexPrices = async (index: any) => {
+  const indexId = index._id;
   const monthData = await IndexMonthDataModel.find({ indexId })
     .sort({ createdAt: -1 })
-    .limit(48); // get up to 48 recent records (24h worth)
+    .limit(96); // fetch up to 96 (48 latest + 48 previous)
 
   if (monthData.length === 0) {
     return {
@@ -19,26 +20,46 @@ const getIndexPrices = async (indexId: any) => {
     };
   }
 
-  const latest = monthData[0];
-  const ago24h = monthData[47] || monthData[monthData.length - 1]; // fallback if less than 48
+  // ⚙️ Normal case — just return latest and 24h ago prices
+  if (index.shortName !== "VOL") {
+    const latest = monthData[0];
+    const ago24h = monthData[47] || monthData[monthData.length - 1];
 
-  return {
-    tonPrice: latest.priceTon,
-    usdPrice: latest.priceUsd,
-    tonPrice24hAgo: ago24h.priceTon,
-    usdPrice24hAgo: ago24h.priceUsd,
-  };
+    return {
+      tonPrice: latest.priceTon,
+      usdPrice: latest.priceUsd,
+      tonPrice24hAgo: ago24h.priceTon,
+      usdPrice24hAgo: ago24h.priceUsd,
+    };
+  }
+
+  // 📊 Special case for 'VOL' — use sums
+  const latest48 = monthData.slice(0, 48);
+  const previous48 = monthData.slice(48, 96);
+
+  const tonPrice = latest48.reduce((sum, doc) => sum + (doc.priceTon || 0), 0);
+  const usdPrice = latest48.reduce((sum, doc) => sum + (doc.priceUsd || 0), 0);
+
+  const tonPrice24hAgo = previous48.reduce(
+    (sum, doc) => sum + (doc.priceTon || 0),
+    0
+  );
+  const usdPrice24hAgo = previous48.reduce(
+    (sum, doc) => sum + (doc.priceUsd || 0),
+    0
+  );
+
+  return { tonPrice, usdPrice, tonPrice24hAgo, usdPrice24hAgo };
 };
 
-// GET ALL INDEXES
+// ✅ GET ALL INDEXES
 router.get("/get-all", async (req, res) => {
   try {
     const indexes = await IndexModel.find();
 
-    // Attach price data to each index
     const indexesWithPrices = await Promise.all(
       indexes.map(async (index) => {
-        const prices = await getIndexPrices(index._id);
+        const prices = await getIndexPrices(index);
         return { ...index.toObject(), ...prices };
       })
     );
@@ -50,19 +71,17 @@ router.get("/get-all", async (req, res) => {
   }
 });
 
-// GET ONE INDEX
+// ✅ GET ONE INDEX
 router.get("/get-one/:indexId", async (req, res) => {
   const { indexId } = req.params;
 
   try {
     const index = await IndexModel.findById(indexId);
-
     if (!index) {
       return res.status(404).json({ message: "Index not found" });
     }
 
-    const prices = await getIndexPrices(indexId);
-
+    const prices = await getIndexPrices(index);
     res.json({ ...index.toObject(), ...prices });
   } catch (error) {
     console.error("Error fetching index:", error);
