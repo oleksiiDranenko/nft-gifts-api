@@ -21,3 +21,5 @@ router.get("/:indexId", async (req, res) => {
     });
   }
 });
+
+export { router as IndexMonthRouter };

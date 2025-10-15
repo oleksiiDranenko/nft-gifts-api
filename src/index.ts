@@ -27,6 +27,7 @@ import { addFearGreedIndex } from "./bot/fear-and-greed/addFearAndGreed";
 import { FearAndGreedRouter } from "./routes/fearAndGreed";
 import { VoteRouter } from "./routes/vote";
 import { addIndexMonthData } from "./functions/index/addIndexMonthData";
+import { IndexMonthRouter } from "./routes/indexMonthData";
 
 process.removeAllListeners("warning");
 
@@ -46,6 +47,7 @@ app.use("/users", UserRouter);
 app.use("/subscriptions", SubscriptionRouter);
 app.use("/indexes", IndexRouter);
 app.use("/indexData", IndexDataRouter);
+app.use("/indexMonthData", IndexMonthRouter);
 app.use("/giftModels", GiftModelsRouter);
 app.use("/fearAndGreed", FearAndGreedRouter);
 app.use("/telegram", TelegramRouter);
