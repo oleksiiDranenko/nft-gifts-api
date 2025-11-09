@@ -44,78 +44,76 @@ router.get("/check-account/:telegramId", async (req, res) => {
 router.get("/get-user-chart/:telegramId", async (req, res) => {
   try {
     const hashedTelegramId = hashValue(req.params.telegramId);
-    const user = await UserModel.findOne({
-      telegramId: hashedTelegramId,
-    }).lean();
 
+    const user = await UserModel.findOne({ telegramId: hashedTelegramId })
+      .select("assets")
+      .lean();
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // 1️⃣ Get gift IDs from user's assets
-    const giftIds = user.assets.map((a) => a.giftId);
+    // Aggregate directly on WeekChartModel
+    const chartData = await WeekChartModel.aggregate([
+      {
+        $lookup: {
+          from: "gifts",
+          localField: "name",
+          foreignField: "name",
+          as: "giftInfo",
+        },
+      },
+      { $unwind: "$giftInfo" },
+      {
+        $addFields: {
+          asset: {
+            $first: {
+              $filter: {
+                input: user.assets,
+                as: "a",
+                cond: { $eq: ["$$a.giftId", { $toString: "$giftInfo._id" }] },
+              },
+            },
+          },
+        },
+      },
+      { $match: { asset: { $exists: true } } },
+      {
+        $project: {
+          date: 1,
+          time: 1,
+          priceTon: { $multiply: ["$priceTon", "$asset.amount"] },
+          priceUsd: { $multiply: ["$priceUsd", "$asset.amount"] },
+        },
+      },
+      {
+        $group: {
+          _id: { date: "$date", time: "$time" },
+          priceTon: { $sum: "$priceTon" },
+          priceUsd: { $sum: "$priceUsd" },
+        },
+      },
+      {
+        $sort: {
+          "_id.date": 1,
+          "_id.time": 1,
+        },
+      },
+      { $limit: 48 },
+    ]);
 
-    // 2️⃣ Fetch corresponding gift names
-    const gifts = await GiftModel.find({ _id: { $in: giftIds } })
-      .select("name")
-      .lean();
-
-    const giftNames = gifts.map((g) => g.name);
-
-    if (giftNames.length === 0) {
-      return res.status(200).json({ message: "User has no valid gifts" });
-    }
-
-    // 3️⃣ Fetch WeekChart data for those gift names
-    const weekData = await WeekChartModel.find({ name: { $in: giftNames } })
-      .sort({ createdAt: -1 })
-      .limit(48 * giftNames.length)
-      .lean();
-
-    if (!weekData.length) {
+    if (!chartData.length) {
       return res.status(200).json({ message: "No chart data available" });
     }
 
-    // 4️⃣ Group by date + time
-    const grouped: Record<string, any> = {};
-
-    for (const doc of weekData) {
-      const key = `${doc.date}_${doc.time}`;
-      if (!grouped[key]) {
-        grouped[key] = {
-          date: doc.date,
-          time: doc.time,
-          priceTon: 0,
-          priceUsd: 0,
-        };
-      }
-
-      // find asset corresponding to this gift
-      const gift = gifts.find((g) => g.name === doc.name);
-      if (!gift) continue;
-
-      const asset = user.assets.find((a) => a.giftId === gift._id.toString());
-      if (asset) {
-        grouped[key].priceTon += doc.priceTon * asset.amount;
-        grouped[key].priceUsd += doc.priceUsd * asset.amount;
-      }
-    }
-
-    // 5️⃣ Sort chronologically
-    const chartData = Object.values(grouped).sort((a, b) => {
-      const [da, ma, ya] = a.date.split("-").map(Number);
-      const [ha, mina] = a.time.split(":").map(Number);
-      const [db, mb, yb] = b.date.split("-").map(Number);
-      const [hb, minb] = b.time.split(":").map(Number);
-      const dateA = new Date(ya, ma - 1, da, ha, mina);
-      const dateB = new Date(yb, mb - 1, db, hb, minb);
-      return dateA.getTime() - dateB.getTime();
-    });
-
-    res.json(chartData.slice(-48));
+    res.json(
+      chartData.map((c) => ({
+        date: c._id.date,
+        time: c._id.time,
+        priceTon: c.priceTon,
+        priceUsd: c.priceUsd,
+      }))
+    );
   } catch (err) {
     console.error("Error generating user chart:", err);
-    res
-      .status(500)
-      .json({ message: "Server error", error: (err as Error).message });
+    res.status(500).json({ message: "Server error", error: err });
   }
 });
 
