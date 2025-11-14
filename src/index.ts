@@ -15,6 +15,7 @@ import {
   addData,
   addDailyDataForDate,
   updateDailyDataForPreviousDay,
+  updateGiftPriceData,
 } from "./bot/bot";
 import { GiftModel } from "./models/Gift";
 import { addIndexData } from "./functions/index/addIndexData";
@@ -89,9 +90,11 @@ if (!inDev) {
     console.log("Cron job triggered at:", new Date().toISOString());
     try {
       await addData();
-      await addFearGreedIndex();
+      await updateGiftPriceData();
+      // await addFearGreedIndex();
       await updateUpgradedSupply();
       await addIndexMonthData();
+
       console.log("Cron job completed successfully");
     } catch (error: any) {
       console.error("Error in cron job:", error.stack);

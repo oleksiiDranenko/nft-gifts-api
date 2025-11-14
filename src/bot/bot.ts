@@ -8,10 +8,12 @@ import { GiftInterface, GiftModel } from "../models/Gift";
 import { addIndexData } from "../functions/index/addIndexData";
 import { addModelsWeekData } from "../routes/modelsWeekData";
 import { retryHandler } from "./operations/retryHandler";
-import { fetchTonPrice } from "./operations/getTonPrice";
+import { fetchTonPrice, getTonPrice } from "./operations/getTonPrice";
 import { addModelsLifeData } from "../routes/modelsLifeData";
 import { fetchVolume, MergedCollection } from "./operations/fetchVolume";
 import { GiftModelsModel } from "../models/Models";
+import { WeekChartModel } from "../models/WeekChart";
+import { LifeChartModel } from "../models/LifeChart";
 
 puppeteer.use(StealthPlugin());
 
@@ -323,5 +325,97 @@ export const addDailyDataForDate = async (inputDate: any) => {
       `Failed to add daily data for ${formattedDate}: ${error.message}`
     );
     throw error;
+  }
+};
+
+export const updateGiftPriceData = async () => {
+  try {
+    const tonPrice = await getTonPrice();
+    const gifts = await GiftModel.find({});
+
+    for (const gift of gifts) {
+      const name = gift.name;
+
+      // ------------------------------------------
+      // CURRENT PRICE (latest weekChart entry)
+      // ------------------------------------------
+      const current = await WeekChartModel.findOne({ name })
+        .sort({ createdAt: -1 })
+        .select("priceTon priceUsd");
+
+      // ------------------------------------------
+      // 24h AGO (48 entries back)
+      // ------------------------------------------
+      const last24h = await WeekChartModel.find({ name })
+        .sort({ createdAt: -1 })
+        .skip(47)
+        .limit(1)
+        .select("priceTon priceUsd");
+
+      // ------------------------------------------
+      // WEEK AGO (first entry in weekChart)
+      // ------------------------------------------
+      const lastWeek = await WeekChartModel.find({ name })
+        .sort({ createdAt: 1 })
+        .limit(1)
+        .select("priceTon priceUsd");
+
+      // ------------------------------------------
+      // MONTH AGO (lifeChart 29 items back)
+      // ------------------------------------------
+      const lastMonth = await LifeChartModel.find({ name })
+        .sort({ _id: -1 })
+        .skip(29)
+        .limit(1)
+        .select("priceTon priceUsd");
+
+      // ------------------------------------------
+      // VOLUME (last 48 entries in weekChart)
+      // ------------------------------------------
+      const volumeEntries = await WeekChartModel.find({ name })
+        .sort({ createdAt: -1 })
+        .limit(48)
+        .select("volume");
+
+      let volumeTon = volumeEntries.reduce(
+        (sum, v) => sum + (v.volume || 0),
+        0
+      );
+
+      // Round to 2 decimals
+      volumeTon = Number(volumeTon.toFixed(2));
+
+      let volumeUsd = volumeTon * tonPrice;
+
+      // Round to 2 decimals
+      volumeUsd = Number(volumeUsd.toFixed(2));
+
+      // ------------------------------------------
+      // UPDATE GIFT DOCUMENT
+      // ------------------------------------------
+      await GiftModel.updateOne(
+        { _id: gift._id },
+        {
+          $set: {
+            priceTon: current?.priceTon ?? null,
+            priceUsd: current?.priceUsd ?? null,
+
+            tonPrice24hAgo: last24h[0]?.priceTon ?? null,
+            usdPrice24hAgo: last24h[0]?.priceUsd ?? null,
+
+            tonPriceWeekAgo: lastWeek[0]?.priceTon ?? null,
+            usdPriceWeekAgo: lastWeek[0]?.priceUsd ?? null,
+
+            tonPriceMonthAgo: lastMonth[0]?.priceTon ?? null,
+            usdPriceMonthAgo: lastMonth[0]?.priceUsd ?? null,
+
+            volumeTon,
+            volumeUsd,
+          },
+        }
+      );
+    }
+  } catch (error) {
+    console.log(error);
   }
 };

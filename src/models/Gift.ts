@@ -14,6 +14,28 @@ const GiftSchema = new mongoose.Schema<GiftInterface>(
     staked: { type: Boolean, required: false },
     preSale: { type: Boolean, required: false },
     upgradedSupply: { type: Number, required: false },
+
+    // ----------------------------
+    // PRECOMPUTED SNAPSHOT FIELDS
+    // ----------------------------
+
+    // current prices
+    priceTon: { type: Number, required: false },
+    priceUsd: { type: Number, required: false },
+
+    // price snapshots
+    tonPrice24hAgo: { type: Number, required: false },
+    usdPrice24hAgo: { type: Number, required: false },
+
+    tonPriceWeekAgo: { type: Number, required: false },
+    usdPriceWeekAgo: { type: Number, required: false },
+
+    tonPriceMonthAgo: { type: Number, required: false },
+    usdPriceMonthAgo: { type: Number, required: false },
+
+    // volumes
+    volumeTon: { type: Number, required: false },
+    volumeUsd: { type: Number, required: false },
   },
   {
     collection: "gifts",
@@ -34,6 +56,22 @@ export interface GiftInterface extends Document {
   staked?: boolean;
   preSale?: boolean;
   upgradedSupply?: number;
+
+  // ⭐ New fields
+  priceTon?: number;
+  priceUsd?: number;
+
+  tonPrice24hAgo?: number;
+  usdPrice24hAgo?: number;
+
+  tonPriceWeekAgo?: number;
+  usdPriceWeekAgo?: number;
+
+  tonPriceMonthAgo?: number;
+  usdPriceMonthAgo?: number;
+
+  volumeTon?: number;
+  volumeUsd?: number;
 }
 
 GiftSchema.index({ name: 1 }, { unique: true });
