@@ -57,7 +57,6 @@ export interface GiftInterface extends Document {
   preSale?: boolean;
   upgradedSupply?: number;
 
-  // ⭐ New fields
   priceTon?: number;
   priceUsd?: number;
 

@@ -41,89 +41,89 @@ router.get("/check-account/:telegramId", async (req, res) => {
   }
 });
 
-router.get("/get-user-chart/:telegramId", async (req, res) => {
-  try {
-    const hashedTelegramId = hashValue(req.params.telegramId);
+// router.get("/get-user-chart/:telegramId", async (req, res) => {
+//   try {
+//     const hashedTelegramId = hashValue(req.params.telegramId);
 
-    // 1️⃣ Fetch user once (only required fields)
-    const user = await UserModel.findOne({ telegramId: hashedTelegramId })
-      .select("assets.giftId assets.amount")
-      .lean();
+//     // 1️⃣ Fetch user once (only required fields)
+//     const user = await UserModel.findOne({ telegramId: hashedTelegramId })
+//       .select("assets.giftId assets.amount")
+//       .lean();
 
-    if (!user) return res.status(404).json({ message: "User not found" });
-    if (!user.assets?.length)
-      return res.status(200).json({ message: "User has no assets" });
+//     if (!user) return res.status(404).json({ message: "User not found" });
+//     if (!user.assets?.length)
+//       return res.status(200).json({ message: "User has no assets" });
 
-    // 2️⃣ Collect gift IDs
-    const giftIds = user.assets.map((a) => a.giftId);
+//     // 2️⃣ Collect gift IDs
+//     const giftIds = user.assets.map((a) => a.giftId);
 
-    // 3️⃣ Fetch all gift names in one query
-    const gifts = await GiftModel.find(
-      { _id: { $in: giftIds } },
-      { _id: 1, name: 1 }
-    ).lean();
+//     // 3️⃣ Fetch all gift names in one query
+//     const gifts = await GiftModel.find(
+//       { _id: { $in: giftIds } },
+//       { _id: 1, name: 1 }
+//     ).lean();
 
-    if (!gifts.length)
-      return res.status(200).json({ message: "User has no valid gifts" });
+//     if (!gifts.length)
+//       return res.status(200).json({ message: "User has no valid gifts" });
 
-    // Build quick lookup maps (O(1) access)
-    const giftIdToGift = new Map(gifts.map((g) => [g._id.toString(), g]));
-    const giftNameSet = new Set(gifts.map((g) => g.name));
-    const giftIdToAmount = new Map(
-      user.assets.map((a) => [a.giftId, a.amount])
-    );
+//     // Build quick lookup maps (O(1) access)
+//     const giftIdToGift = new Map(gifts.map((g) => [g._id.toString(), g]));
+//     const giftNameSet = new Set(gifts.map((g) => g.name));
+//     const giftIdToAmount = new Map(
+//       user.assets.map((a) => [a.giftId, a.amount])
+//     );
 
-    // 4️⃣ Fetch week data efficiently
-    const weekData = await WeekChartModel.find(
-      { name: { $in: Array.from(giftNameSet) } },
-      { name: 1, date: 1, time: 1, priceTon: 1, priceUsd: 1, createdAt: 1 }
-    )
-      .sort({ createdAt: -1 })
-      .limit(48 * giftNameSet.size) // same logic
-      .lean();
+//     // 4️⃣ Fetch week data efficiently
+//     const weekData = await WeekChartModel.find(
+//       { name: { $in: Array.from(giftNameSet) } },
+//       { name: 1, date: 1, time: 1, priceTon: 1, priceUsd: 1, createdAt: 1 }
+//     )
+//       .sort({ createdAt: -1 })
+//       .limit(48 * giftNameSet.size) // same logic
+//       .lean();
 
-    if (!weekData.length)
-      return res.status(200).json({ message: "No chart data available" });
+//     if (!weekData.length)
+//       return res.status(200).json({ message: "No chart data available" });
 
-    // 5️⃣ Group efficiently by date + time
-    const grouped = new Map();
+//     // 5️⃣ Group efficiently by date + time
+//     const grouped = new Map();
 
-    for (const doc of weekData) {
-      const gift = gifts.find((g) => g.name === doc.name);
-      if (!gift) continue;
+//     for (const doc of weekData) {
+//       const gift = gifts.find((g) => g.name === doc.name);
+//       if (!gift) continue;
 
-      const amount = giftIdToAmount.get(gift._id.toString());
-      if (!amount) continue;
+//       const amount = giftIdToAmount.get(gift._id.toString());
+//       if (!amount) continue;
 
-      const key = `${doc.date}_${doc.time}`;
-      let entry = grouped.get(key);
-      if (!entry) {
-        entry = { date: doc.date, time: doc.time, priceTon: 0, priceUsd: 0 };
-        grouped.set(key, entry);
-      }
+//       const key = `${doc.date}_${doc.time}`;
+//       let entry = grouped.get(key);
+//       if (!entry) {
+//         entry = { date: doc.date, time: doc.time, priceTon: 0, priceUsd: 0 };
+//         grouped.set(key, entry);
+//       }
 
-      entry.priceTon += doc.priceTon * amount;
-      entry.priceUsd += doc.priceUsd * amount;
-    }
+//       entry.priceTon += doc.priceTon * amount;
+//       entry.priceUsd += doc.priceUsd * amount;
+//     }
 
-    // 6️⃣ Chronological sort (identical logic)
-    const chartData = Array.from(grouped.values()).sort((a, b) => {
-      const [da, ma, ya] = a.date.split("-").map(Number);
-      const [ha, mina] = a.time.split(":").map(Number);
-      const [db, mb, yb] = b.date.split("-").map(Number);
-      const [hb, minb] = b.time.split(":").map(Number);
-      return (
-        (new Date(ya, ma - 1, da, ha, mina) as any) -
-        (new Date(yb, mb - 1, db, hb, minb) as any)
-      );
-    });
+//     // 6️⃣ Chronological sort (identical logic)
+//     const chartData = Array.from(grouped.values()).sort((a, b) => {
+//       const [da, ma, ya] = a.date.split("-").map(Number);
+//       const [ha, mina] = a.time.split(":").map(Number);
+//       const [db, mb, yb] = b.date.split("-").map(Number);
+//       const [hb, minb] = b.time.split(":").map(Number);
+//       return (
+//         (new Date(ya, ma - 1, da, ha, mina) as any) -
+//         (new Date(yb, mb - 1, db, hb, minb) as any)
+//       );
+//     });
 
-    res.json(chartData.slice(-48));
-  } catch (err) {
-    console.error("Error generating user chart:", err);
-    res.status(500).json({ message: "Server error", error: err });
-  }
-});
+//     res.json(chartData.slice(-48));
+//   } catch (err) {
+//     console.error("Error generating user chart:", err);
+//     res.status(500).json({ message: "Server error", error: err });
+//   }
+// });
 
 router.post("/create-account", async (req, res) => {
   const hashedTelegramId = hashValue(req.body.telegramId);

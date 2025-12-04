@@ -15,6 +15,8 @@ const IndexMonthDataSchema = new mongoose.Schema(
   }
 );
 
+IndexMonthDataSchema.index({ indexId: 1 });
+
 export const IndexMonthDataModel = mongoose.model(
   "indexMonthData",
   IndexMonthDataSchema
