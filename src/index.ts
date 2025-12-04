@@ -8,7 +8,6 @@ import { WeekRouter } from "./routes/weekData";
 import { LifeRouter } from "./routes/lifeData";
 import { GiftsRouter } from "./routes/gifts";
 import { UserRouter } from "./routes/users";
-import { SubscriptionRouter } from "./routes/subscription";
 import { IndexRouter } from "./routes/index";
 import { IndexDataRouter } from "./routes/indexData";
 import {
@@ -45,7 +44,6 @@ app.use("/weekChart", WeekRouter);
 app.use("/lifeChart", LifeRouter);
 app.use("/gifts", GiftsRouter);
 app.use("/users", UserRouter);
-app.use("/subscriptions", SubscriptionRouter);
 app.use("/indexes", IndexRouter);
 app.use("/indexData", IndexDataRouter);
 app.use("/indexMonthData", IndexMonthRouter);
