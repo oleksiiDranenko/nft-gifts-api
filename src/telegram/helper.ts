@@ -15,8 +15,8 @@ export const getTopMovers = (gifts: any[]) => {
 
   const valid = processed.filter((g) => g.change !== null);
 
-  const gainers = [...valid].sort((a, b) => b.change - a.change).slice(0, 10);
-  const losers = [...valid].sort((a, b) => a.change - b.change).slice(0, 10);
+  const gainers = [...valid].sort((a, b) => b.change - a.change).slice(0, 5);
+  const losers = [...valid].sort((a, b) => a.change - b.change).slice(0, 5);
 
   return { gainers, losers };
 };

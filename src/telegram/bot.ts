@@ -134,13 +134,13 @@ export const initializeBot = async (botToken: string) => {
           g.change >= 0
             ? `+${g.change.toFixed(2)}%`
             : `${g.change.toFixed(2)}%`;
-        return `${name} ${pct}`;
+        return `<b>${name}</b> ${pct}`;
       };
 
       const msg =
-        `<b>📈 Top 5 Gainers (24h):</b>\n` +
+        `<b>📈 Top 5 Gainers (24h):</b>\n\n` +
         gainers.map(formatItem).join("\n") +
-        `\n\n<b>📉 Top 5 Losers (24h):</b>\n` +
+        `\n\n<b>📉 Top 5 Losers (24h):</b>\n\n` +
         losers.map(formatItem).join("\n");
 
       await ctx.replyWithHTML(msg);
