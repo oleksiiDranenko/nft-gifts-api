@@ -23,27 +23,27 @@ router.post("/send-image", upload.single("file"), async (req, res) => {
     const optimizedStream = new stream.PassThrough();
 
     // 2️⃣ Pipe file buffer through sharp (resize + compress) into the PassThrough stream
+    // HD quality: keep high resolution, quality 90
     sharp(file.buffer)
-      .jpeg({ quality: 70 }) // compress
-      .resize({ width: 1080, withoutEnlargement: true }) // optional max width
+      .jpeg({ quality: 90 }) // higher quality
+      .resize({ width: 1920, withoutEnlargement: true }) // HD width, optional
       .pipe(optimizedStream);
 
     // 3️⃣ Prepare form-data with the streaming document
     const formData = new FormData();
     formData.append("chat_id", chatId);
     formData.append("document", optimizedStream, {
-      filename: file.originalname.replace(/\.[^/.]+$/, ".jpg"),
+      filename: "heatmap.jpg", // fixed name
       contentType: "image/jpeg",
     });
 
-    if (req.body.caption) {
-      formData.append("caption", req.body.caption);
-    }
+    // 4️⃣ Add caption text
+    formData.append("caption", "Here is your Heatmap image!\n@gift_charts_bot");
 
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
 
-    // 4️⃣ Send to Telegram
+    // 5️⃣ Send to Telegram
     const response = await axios.post(telegramApiUrl, formData, {
       headers: formData.getHeaders(),
       maxContentLength: Infinity,
