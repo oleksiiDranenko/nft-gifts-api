@@ -1,7 +1,7 @@
-import { Telegraf, Markup } from 'telegraf';
-import { WeekChartModel } from '../models/WeekChart';
-import { GiftModel } from '../models/Gift';
-
+import { Telegraf, Markup } from "telegraf";
+import { WeekChartModel } from "../models/WeekChart";
+import { GiftModel } from "../models/Gift";
+import { getTopMovers } from "./helper";
 
 // Fetch gift price data from MongoDB
 const getGiftPriceData = async (giftName: string) => {
@@ -24,7 +24,9 @@ const getGiftPriceData = async (giftName: string) => {
       priceUsd: currentPriceData[0]?.priceUsd ?? null,
     };
   } catch (error: any) {
-    throw new Error(`Failed to fetch price data for ${giftName}: ${error.message}`);
+    throw new Error(
+      `Failed to fetch price data for ${giftName}: ${error.message}`
+    );
   }
 };
 
@@ -46,55 +48,21 @@ const getGiftsList = async () => {
 
 // Sanitize HTML characters
 const sanitizeHtml = (text: string) =>
-  text.replace(/[<>&]/g, (char: string) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[char]) as string);
-
-// Format gifts message for Telegram
-const formatGiftsMessage = (gifts: any) => {
-  const sorted = [...gifts].sort((a, b) => {
-    const changeA = a.tonPrice24hAgo
-      ? Math.abs((a.priceTon - a.tonPrice24hAgo) / a.tonPrice24hAgo * 100)
-      : -Infinity;
-    const changeB = b.tonPrice24hAgo
-      ? Math.abs((b.priceTon - b.tonPrice24hAgo) / b.tonPrice24hAgo * 100)
-      : -Infinity;
-    return changeB - changeA;
-  });
-
-  const messages = [];
-  let currentMsg = '';
-
-  for (const gift of sorted) {
-    const name = sanitizeHtml(gift.name);
-    let percentageChange = 'N/A';
-    let emoji = '🟢';
-
-    if (gift.priceTon && gift.tonPrice24hAgo && gift.tonPrice24hAgo !== 0) {
-      const change = ((gift.priceTon - gift.tonPrice24hAgo) / gift.tonPrice24hAgo) * 100;
-      percentageChange = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
-      emoji = change >= 0 ? '🟢' : '🔴';
-    }
-
-    const line = `${emoji} <b>${name}</b> ${percentageChange}\n`;
-
-    if (currentMsg.length + line.length > 4000) {
-      messages.push(currentMsg);
-      currentMsg = line;
-    } else {
-      currentMsg += line;
-    }
-  }
-
-  if (currentMsg) messages.push(currentMsg);
-  return messages;
-};
+  text.replace(
+    /[<>&]/g,
+    (char: string) =>
+      ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[char] as string)
+  );
 
 // Initialize Telegram bot
 export const initializeBot = async (botToken: string) => {
   if (!botToken) {
-    throw new Error('Bot token must be provided. Ensure TELEGRAM_BOT_TOKEN is set in environment variables.');
+    throw new Error(
+      "Bot token must be provided. Ensure TELEGRAM_BOT_TOKEN is set in environment variables."
+    );
   }
-  if (botToken.split(':').length !== 2) {
-    throw new Error('Invalid Telegram bot token format: must contain a colon');
+  if (botToken.split(":").length !== 2) {
+    throw new Error("Invalid Telegram bot token format: must contain a colon");
   }
 
   const bot = new Telegraf(botToken);
@@ -106,24 +74,24 @@ export const initializeBot = async (botToken: string) => {
     await bot.telegram.setWebhook(webhookUrl);
     console.log(`Webhook set to ${webhookUrl}`);
   } catch (err) {
-    console.error('Error setting webhook:', err);
+    console.error("Error setting webhook:", err);
     throw err;
   }
 
   // Register commands
   try {
     await bot.telegram.setMyCommands([
-      { command: 'start', description: 'Start the bot' },
-      { command: 'list', description: 'Get a list of 24h changes' },
+      { command: "start", description: "Start the bot" },
+      { command: "stats", description: "Get top gifts by 24h changes" },
     ]);
-    console.log('Commands registered with Telegram');
+    console.log("Commands registered with Telegram");
   } catch (err) {
-    console.error('Error registering commands:', err);
+    console.error("Error registering commands:", err);
   }
 
   // Global error handler
-  bot.on('error' as any, (err) => {
-    console.error('Global bot error:', err);
+  bot.on("error" as any, (err) => {
+    console.error("Global bot error:", err);
   });
 
   // /start command
@@ -131,50 +99,63 @@ export const initializeBot = async (botToken: string) => {
     try {
       console.log(`Received /start from user ${ctx.chat.id}`);
       await ctx.replyWithHTML(
-        `<b>Welcome to Gift Charts!</b>\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts\n\nUse /list to get a list of 24h changes\n\n`,
+        `<b>Welcome to Gift Charts!</b>\n\n📊 The best Mini App with charts and other tools for Telegram NFT Gifts\n\nOfficial Channel: @gift_charts\n\nUse /stats to get top gifts by 24h changes\n\n`,
         Markup.inlineKeyboard([
-          Markup.button.url('Open Mini App', 'https://t.me/gift_charts_bot?startapp=launch'),
+          Markup.button.url(
+            "Open Mini App",
+            "https://t.me/gift_charts_bot?startapp=launch"
+          ),
         ])
       );
     } catch (error: any) {
       if (error.response?.error_code === 403) {
         console.warn(`Skipped: Bot was blocked by user ${ctx.chat.id}`);
       } else {
-        console.error('Error in /start command:', error);
+        console.error("Error in /start command:", error);
       }
     }
   });
 
-  // /list command
-  bot.command('list', async (ctx) => {
+  bot.command("stats", async (ctx) => {
     try {
-      console.log(`Received /list from user ${ctx.chat.id}`);
+      console.log(`Received /stats from user ${ctx.chat.id}`);
       const gifts = await getGiftsList();
+
       if (!gifts.length) {
-        return await ctx.replyWithHTML('No gifts found. Please wait for data to be updated.');
+        return await ctx.replyWithHTML(
+          "No gifts found. Please wait for data to be updated."
+        );
       }
 
-      const messages = formatGiftsMessage(gifts);
-      for (const message of messages) {
-        try {
-          await ctx.replyWithHTML(message);
-        } catch (error: any) {
-          if (error.response?.error_code === 403) {
-            console.warn(`Skipped: Bot was blocked by user ${ctx.chat.id}`);
-          } else {
-            console.error('Error sending /list message:', error);
-          }
-        }
-      }
+      const { gainers, losers } = getTopMovers(gifts);
+
+      const formatItem = (g: any) => {
+        const name = sanitizeHtml(g.name);
+        const pct =
+          g.change >= 0
+            ? `+${g.change.toFixed(2)}%`
+            : `${g.change.toFixed(2)}%`;
+        return `${name} ${pct}`;
+      };
+
+      const msg =
+        `<b>📈 Top 5 Gainers (24h):</b>\n` +
+        gainers.map(formatItem).join("\n") +
+        `\n\n<b>📉 Top 5 Losers (24h):</b>\n` +
+        losers.map(formatItem).join("\n");
+
+      await ctx.replyWithHTML(msg);
     } catch (error) {
-      console.error('Error in /list command:', error);
+      console.error("Error in /stats command:", error);
       try {
-        await ctx.replyWithHTML('Failed to fetch gifts. Please try again later.');
+        await ctx.replyWithHTML(
+          "Failed to fetch stats. Please try again later."
+        );
       } catch (err: any) {
         if (err.response?.error_code === 403) {
           console.warn(`Skipped: Bot was blocked by user ${ctx.chat.id}`);
         } else {
-          console.error('Error replying with fallback /list message:', err);
+          console.error("Error sending fallback /stats message:", err);
         }
       }
     }
