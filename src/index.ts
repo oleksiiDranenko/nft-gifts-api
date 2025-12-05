@@ -39,7 +39,7 @@ dotenv.config();
 
 app.use(cors());
 app.use(express.json());
-// app.use(compression);
+app.use(compression());
 
 // Set up routes
 app.use("/weekChart", WeekRouter);
