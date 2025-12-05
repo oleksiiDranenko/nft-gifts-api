@@ -118,7 +118,6 @@ export const initializeBot = async (botToken: string) => {
 
   bot.command("stats", async (ctx) => {
     try {
-      console.log(`Received /stats from user ${ctx.chat.id}`);
       const gifts = await getGiftsList();
 
       if (!gifts.length) {
