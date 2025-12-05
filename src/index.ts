@@ -37,7 +37,25 @@ const port = process.env.PORT || 3001;
 
 dotenv.config();
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://giftcharts.com",
+  "https://www.giftcharts.com",
+  "https://redesign.d3fmdfn9yjrr0a.amplifyapp.com",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  })
+);
 app.use(express.json());
 app.use(compression());
 
