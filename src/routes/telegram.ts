@@ -2,31 +2,40 @@ import express from "express";
 import multer from "multer";
 import FormData from "form-data";
 import axios from "axios";
+import sharp from "sharp";
+import stream from "stream";
 
 const router = express.Router();
-const upload = multer();
 
-router.post("/send-image", upload.any(), async (req, res) => {
+// Memory storage (only for incoming upload)
+const upload = multer({ storage: multer.memoryStorage() });
+
+router.post("/send-image", upload.single("file"), async (req, res) => {
   try {
-    // accept both camelCase and snake_case
     const chatId = req.body.chatId || req.body.chat_id;
-    const files = req.files as Express.Multer.File[];
-    const file = files?.[0]; 
+    const file = req.file;
 
     if (!chatId || !file) {
       return res.status(400).json({ message: "Missing data" });
     }
 
+    // 1️⃣ Create a PassThrough stream for optimized output
+    const optimizedStream = new stream.PassThrough();
+
+    // 2️⃣ Pipe file buffer through sharp (resize + compress) into the PassThrough stream
+    sharp(file.buffer)
+      .jpeg({ quality: 70 }) // compress
+      .resize({ width: 1080, withoutEnlargement: true }) // optional max width
+      .pipe(optimizedStream);
+
+    // 3️⃣ Prepare form-data with the streaming document
     const formData = new FormData();
     formData.append("chat_id", chatId);
-
-    // add file
-    formData.append("document", file.buffer, {
-      filename: file.originalname,
-      contentType: file.mimetype,
+    formData.append("document", optimizedStream, {
+      filename: file.originalname.replace(/\.[^/.]+$/, ".jpg"),
+      contentType: "image/jpeg",
     });
 
-    // optionally add caption if provided
     if (req.body.caption) {
       formData.append("caption", req.body.caption);
     }
@@ -34,8 +43,11 @@ router.post("/send-image", upload.any(), async (req, res) => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
 
+    // 4️⃣ Send to Telegram
     const response = await axios.post(telegramApiUrl, formData, {
       headers: formData.getHeaders(),
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity, // for large files
     });
 
     res.json({ success: true, data: response.data });
