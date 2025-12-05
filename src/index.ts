@@ -28,6 +28,7 @@ import { FearAndGreedRouter } from "./routes/fearAndGreed";
 import { VoteRouter } from "./routes/vote";
 import { addIndexMonthData } from "./functions/index/addIndexMonthData";
 import { IndexMonthRouter } from "./routes/indexMonthData";
+import compression from "compression";
 
 process.removeAllListeners("warning");
 
@@ -38,6 +39,7 @@ dotenv.config();
 
 app.use(cors());
 app.use(express.json());
+app.use(compression);
 
 // Set up routes
 app.use("/weekChart", WeekRouter);

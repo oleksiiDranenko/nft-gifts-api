@@ -14,11 +14,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// router.get('/get-plain', async (req, res) => {
-//   const gifts = await GiftModel.find();
-//   res.json(gifts)
-// })
-
 export const getNames = async () => {
   try {
     const gifts = await GiftModel.find().select("name -_id");
@@ -67,57 +62,5 @@ router.get("/:giftId", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-// router.post('/', async (req, res) => {
-//     const {
-//         name, image, supply, initSupply, releaseDate, starsPrice, upgradePrice, initTonPrice, initUsdPrice, preSale
-//     } = req.body;
-
-//     try {
-
-//         const newGiftData = new GiftModel({
-//             name,
-//             image,
-//             supply,
-//             initSupply,
-//             releaseDate,
-//             starsPrice,
-//             upgradePrice,
-//             initTonPrice,
-//             initUsdPrice,
-//             preSale
-//         })
-
-//         await newGiftData.save()
-
-//         res.json(newGiftData)
-
-//     } catch (error) {
-//         res.json({
-//             message: error
-//         })
-//     }
-// })
-
-// router.patch("/add-models/:giftName", async (req, res) => {
-//     try {
-//         const { giftName } = req.params;
-//         const { models } = req.body;
-
-//         const gift = await GiftModel.findOne({name: giftName});
-
-//         if(gift) {
-//           Object.assign(gift.models, models)
-//           await gift.save()
-//           res.status(200).json(gift)
-//         } else {
-//           res.status(400).json({message: 'no gift found'})
-//         }
-
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ error: "Server error" });
-//     }
-// });
 
 export { router as GiftsRouter };

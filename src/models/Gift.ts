@@ -8,32 +8,15 @@ const GiftSchema = new mongoose.Schema<GiftInterface>(
     initSupply: { type: Number, required: true },
     releaseDate: { type: String, required: true },
     starsPrice: { type: Number, required: true },
-    upgradePrice: { type: Number, required: true },
-    initTonPrice: { type: Number, required: true },
-    initUsdPrice: { type: Number, required: true },
-    staked: { type: Boolean, required: false },
-    preSale: { type: Boolean, required: false },
     upgradedSupply: { type: Number, required: false },
-
-    // ----------------------------
-    // PRECOMPUTED SNAPSHOT FIELDS
-    // ----------------------------
-
-    // current prices
     priceTon: { type: Number, required: false },
     priceUsd: { type: Number, required: false },
-
-    // price snapshots
     tonPrice24hAgo: { type: Number, required: false },
     usdPrice24hAgo: { type: Number, required: false },
-
     tonPriceWeekAgo: { type: Number, required: false },
     usdPriceWeekAgo: { type: Number, required: false },
-
     tonPriceMonthAgo: { type: Number, required: false },
     usdPriceMonthAgo: { type: Number, required: false },
-
-    // volumes
     volumeTon: { type: Number, required: false },
     volumeUsd: { type: Number, required: false },
   },
@@ -50,11 +33,6 @@ export interface GiftInterface extends Document {
   initSupply: number;
   releaseDate: string;
   starsPrice: number;
-  upgradePrice: number;
-  initTonPrice: number;
-  initUsdPrice: number;
-  staked?: boolean;
-  preSale?: boolean;
   upgradedSupply?: number;
 
   priceTon?: number;
